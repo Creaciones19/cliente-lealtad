@@ -217,31 +217,30 @@
     scanModal.style.display = "none";
   }
 
-  function procesarCliente(idCliente) {
-    statusDiv.innerText = "Registrando visita...";
+ function procesarCliente(idCliente) {
+  statusDiv.innerText = "Registrando visita...";
 
-    const clienteRef = firebase
-      .database()
-      .ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+  const clienteRef = firebase
+    .database()
+    .ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
 
-    clienteRef.get().then(snapshot => {
-      let cliente;
+  clienteRef.get().then(snapshot => {
+    let cliente;
 
-      // 👉 SI NO EXISTE, SE CREA SOLO
-      if (!snapshot.exists()) {
-        cliente = {
-          visitas: 1,
-          recompensasDisponibles: 0,
-          fechaAlta: Date.now()
-        };
+    if (!snapshot.exists()) {
+      cliente = {
+        visitas: 1,
+        recompensasDisponibles: 0,
+        fechaAlta: Date.now()
+      };
 
-        clienteRef.set(cliente).then(() => {
-          statusDiv.innerHTML =
-            "<span class='success'>✅ Cliente nuevo registrado (1 / 6)</span>";
-        });
+      clienteRef.set(cliente).then(() => {
+        statusDiv.innerHTML =
+          "<span class='success'>✅ Cliente nuevo registrado (1 / 6)</span>";
+      });
 
-        return;
-      }
+      return;
+    }
 
       // 👉 SI EXISTE, SE ACTUALIZA
       cliente = snapshot.val();
