@@ -176,49 +176,93 @@
     </div>
   </div>
 
-  <script>
+<script>
   const scanBtn = document.getElementById("scanBtn");
   const scanModal = document.getElementById("scanModal");
   const statusDiv = document.getElementById("status");
 
+  const NEGOCIO_ID = "negocio_ABC";
+  const VISITAS_PARA_RECOMPENSA = 6;
+
   let qrScanner = null;
 
-  scanBtn.addEventListener("click", async () => {
+  scanBtn.addEventListener("click", () => {
     scanModal.style.display = "flex";
 
     if (qrScanner) {
-      await qrScanner.stop();
-      qrScanner.clear();
+      qrScanner.stop().then(() => qrScanner.clear());
       qrScanner = null;
     }
 
     qrScanner = new Html5Qrcode("reader");
 
     qrScanner.start(
-      { facingMode: "environment" }, // ✅ funciona en móvil y PC
-      {
-        fps: 10,
-        qrbox: 220
-      },
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 220, height: 220 } },
       (qrText) => {
         cerrarEscaner();
-        statusDiv.innerText = "QR leído: " + qrText;
+        procesarCliente(qrText.trim());
       },
-      () => {
-        // errores normales mientras busca QR (no hacer nada)
-      }
+      () => {}
     );
   });
 
-  async function cerrarEscaner() {
+  function cerrarEscaner() {
     if (qrScanner) {
-      await qrScanner.stop();
-      qrScanner.clear();
-      qrScanner = null;
+      qrScanner.stop().then(() => {
+        qrScanner.clear();
+        qrScanner = null;
+      });
     }
     scanModal.style.display = "none";
   }
+
+  function procesarCliente(idCliente) {
+    statusDiv.innerText = "Registrando visita...";
+
+    const clienteRef = firebase
+      .database()
+      .ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+
+    clienteRef.get().then(snapshot => {
+      let cliente;
+
+      // 👉 SI NO EXISTE, SE CREA SOLO
+      if (!snapshot.exists()) {
+        cliente = {
+          visitas: 1,
+          recompensasDisponibles: 0,
+          fechaAlta: Date.now()
+        };
+
+        clienteRef.set(cliente).then(() => {
+          statusDiv.innerHTML =
+            "<span class='success'>✅ Cliente nuevo registrado (1 / 6)</span>";
+        });
+
+        return;
+      }
+
+      // 👉 SI EXISTE, SE ACTUALIZA
+      cliente = snapshot.val();
+      cliente.visitas = (cliente.visitas || 0) + 1;
+      cliente.recompensasDisponibles ||= 0;
+
+      let mensaje = `✅ Visita registrada (${cliente.visitas} / ${VISITAS_PARA_RECOMPENSA})`;
+
+      if (cliente.visitas >= VISITAS_PARA_RECOMPENSA) {
+        cliente.visitas = 0;
+        cliente.recompensasDisponibles += 1;
+        mensaje = "🎁 ¡RECOMPENSA DISPONIBLE!";
+      }
+
+      clienteRef.set(cliente).then(() => {
+        statusDiv.innerHTML = `<span class='success'>${mensaje}</span>`;
+      });
+    });
+  }
 </script>
+
 
 </body>
 </html>
