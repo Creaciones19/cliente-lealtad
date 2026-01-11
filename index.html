@@ -175,35 +175,68 @@
       <button class="btn-cancel" onclick="cerrarEscaner()">Cancelar</button>
     </div>
   </div>
+<script>
+  const scanBtn = document.getElementById("scanBtn");
+  const scanModal = document.getElementById("scanModal");
+  const statusDiv = document.getElementById("status");
 
-  <script>
-    const scanBtn = document.getElementById("scanBtn");
-    const scanModal = document.getElementById("scanModal");
-    const statusDiv = document.getElementById("status");
+  let qrScanner;
 
-    let qrScanner;
+  scanBtn.addEventListener("click", () => {
+    scanModal.style.display = "flex";
 
-    scanBtn.addEventListener("click", () => {
-      scanModal.style.display = "flex";
-
-      qrScanner = new Html5Qrcode("reader");
-      qrScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 220 },
-        (qrText) => {
-          cerrarEscaner();
-          statusDiv.innerText = "QR leído: " + qrText;
-        }
-      );
-    });
-
-    function cerrarEscaner() {
-      if (qrScanner) {
-        qrScanner.stop().then(() => qrScanner.clear());
+    qrScanner = new Html5Qrcode("reader");
+    qrScanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 220 },
+      (qrText) => {
+        // qrText es el ID del cliente (ej. "001")
+        registrarVisita(qrText);
+        cerrarEscaner();
       }
-      scanModal.style.display = "none";
+    );
+  });
+
+  function cerrarEscaner() {
+    if (qrScanner) {
+      qrScanner.stop().then(() => qrScanner.clear());
     }
-  </script>
+    scanModal.style.display = "none";
+  }
+
+  // ===== FUNCIONES DE VISITAS =====
+  function registrarVisita(idCliente) {
+    const NEGOCIO_ID = "restaurante1"; // cambia según tu negocio
+    statusDiv.innerText = "Registrando visita...";
+
+    const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+
+    clienteRef.get().then(snapshot => {
+      if (!snapshot.exists()) {
+        // Si el cliente no existe, lo creamos con 1 visita
+        clienteRef.set({ visitas: 1 }).then(() => {
+          mostrarVisitas(idCliente, 1);
+        });
+      } else {
+        // Si existe, sumamos 1 visita
+        const visitasActuales = snapshot.val().visitas || 0;
+        clienteRef.update({ visitas: visitasActuales + 1 }).then(() => {
+          mostrarVisitas(idCliente, visitasActuales + 1);
+        });
+      }
+    }).catch(err => {
+      statusDiv.innerText = "Error al registrar visita: " + err;
+    });
+  }
+
+  // ===== FUNCION PARA MOSTRAR VISITAS EN TIEMPO REAL =====
+  function mostrarVisitas(idCliente, visitas) {
+    statusDiv.innerHTML = `
+      Cliente <b>${idCliente}</b><br>
+      Visitas acumuladas: <b>${visitas}</b> ✅
+    `;
+  }
+</script>
 
 </body>
 </html>

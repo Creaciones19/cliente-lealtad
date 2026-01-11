@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Canjear Recompensa</title>
+  <title>Registrar Visita</title>
 
-  <!-- QR -->
+  <!-- QR Scanner -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <!-- Font -->
@@ -46,13 +46,24 @@
       color: white;
     }
 
-    h1 {
+    .negocio {
+      font-size: 22px;
+      font-weight: 600;
       margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 15px;
     }
 
     button {
       width: 100%;
-      margin-top: 20px;
+      margin-top: 25px;
       padding: 16px;
       font-size: 18px;
       border: none;
@@ -64,11 +75,12 @@
 
     #status {
       margin-top: 20px;
-      min-height: 24px;
+      min-height: 22px;
       font-size: 16px;
     }
 
-    /* MODAL ESCANEO */
+    /* ===== MODAL ESCÁNER ===== */
+
     .scan-modal {
       position: fixed;
       inset: 0;
@@ -79,142 +91,119 @@
       z-index: 9999;
     }
 
-    .scanner-box {
-      text-align: center;
+    .scanner-container {
+      position: relative;
+      width: 280px;
+      height: 280px;
     }
 
     #reader {
-      width: 260px;
-      height: 260px;
+      width: 100%;
+      height: 100%;
       border-radius: 16px;
       overflow: hidden;
     }
 
-    .frame {
+    .scan-frame {
       position: absolute;
-      width: 260px;
-      height: 260px;
-      border: 3px solid white;
+      inset: 0;
+      border: 3px solid rgba(255,255,255,0.9);
       border-radius: 16px;
       pointer-events: none;
     }
 
-    .cancel {
+    .scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #00ff9d;
+      animation: scan 2s linear infinite;
+    }
+
+    @keyframes scan {
+      from { top: 10%; }
+      to { top: 90%; }
+    }
+
+    .scan-text {
       margin-top: 15px;
-      background: white;
-      color: black;
+      color: white;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .btn-cancel {
+      margin-top: 18px;
+      background: #ffffff;
+      color: #333;
       border-radius: 10px;
       padding: 12px;
       border: none;
-      width: 260px;
+      width: 100%;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
 
-<div class="overlay"></div>
+  <div class="overlay"></div>
 
-<div class="card">
-  <h1>Canjear Recompensa</h1>
-  <p>Escanea el QR del cliente</p>
+  <div class="card">
+    <div class="negocio">Restaurante Buon Appetito</div>
+    <h1>Registrar Visita</h1>
+    <p>Escanear el QR del cliente</p>
 
-  <button id="scanBtn">📷 Escanear QR</button>
-
-  <div id="status"></div>
-</div>
-
-<!-- MODAL -->
-<div id="scanModal" class="scan-modal">
-  <div class="scanner-box">
-    <div style="position:relative">
-      <div id="reader"></div>
-      <div class="frame"></div>
-    </div>
-    <button class="cancel" onclick="cerrarEscaner()">Cancelar</button>
+    <button id="scanBtn">📷 Escanear QR</button>
+    <div id="status"></div>
   </div>
-</div>
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- MODAL ESCÁNER -->
+  <div id="scanModal" class="scan-modal">
+    <div>
+      <div class="scanner-container">
+        <div id="reader"></div>
+        <div class="scan-frame"></div>
+        <div class="scan-line"></div>
+      </div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
-    authDomain: "cliente-lealtad.firebaseapp.com",
-    databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
-    projectId: "cliente-lealtad",
-    storageBucket: "cliente-lealtad.appspot.com",
-    messagingSenderId: "19568539350",
-    appId: "1:19568539350:web:0f545162141039a376bb77"
-  };
+      <div class="scan-text">
+        Coloca el QR dentro del marco
+      </div>
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+      <button class="btn-cancel" onclick="cerrarEscaner()">Cancelar</button>
+    </div>
+  </div>
 
-  const scanBtn = document.getElementById("scanBtn");
-  const scanModal = document.getElementById("scanModal");
-  const statusDiv = document.getElementById("status");
+  <script>
+    const scanBtn = document.getElementById("scanBtn");
+    const scanModal = document.getElementById("scanModal");
+    const statusDiv = document.getElementById("status");
 
-  let qrScanner;
+    let qrScanner;
 
-  scanBtn.onclick = () => {
-    scanModal.style.display = "flex";
-    qrScanner = new Html5Qrcode("reader");
+    scanBtn.addEventListener("click", () => {
+      scanModal.style.display = "flex";
 
-    qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 220 },
-      (idCliente) => {
-        cerrarEscaner();
-        verificarCanje(idCliente);
-      }
-    );
-  };
-
-  function cerrarEscaner() {
-    if (qrScanner) {
-      qrScanner.stop().then(() => qrScanner.clear());
-    }
-    scanModal.style.display = "none";
-  }
-
-  function verificarCanje(idCliente) {
-    const negocioID = "negocio_ABC";
-    statusDiv.innerText = "Verificando recompensa...";
-
-    db.ref(`negocios/${negocioID}/clientes/${idCliente}`).get()
-      .then(snap => {
-        const cliente = snap.val();
-
-        if (!cliente || !cliente.recompensasDisponibles) {
-          statusDiv.innerText = "❌ No hay recompensas disponibles";
-          return;
+      qrScanner = new Html5Qrcode("reader");
+      qrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 220 },
+        (qrText) => {
+          cerrarEscaner();
+          statusDiv.innerText = "QR leído: " + qrText;
         }
+      );
+    });
 
-        statusDiv.innerHTML = `
-          🎁 Recompensas disponibles: ${cliente.recompensasDisponibles}<br><br>
-          <button onclick="canjear('${idCliente}')">Canjear recompensa</button>
-        `;
-      });
-  }
-
-  function canjear(idCliente) {
-    const negocioID = "negocio_ABC";
-
-    db.ref(`negocios/${negocioID}/clientes/${idCliente}`).get()
-      .then(snap => {
-        const cliente = snap.val();
-        cliente.recompensasDisponibles--;
-
-        db.ref(`negocios/${negocioID}/clientes/${idCliente}`).set(cliente)
-          .then(() => {
-            statusDiv.innerText = "✅ Recompensa canjeada con éxito";
-          });
-      });
-  }
-</script>
+    function cerrarEscaner() {
+      if (qrScanner) {
+        qrScanner.stop().then(() => qrScanner.clear());
+      }
+      scanModal.style.display = "none";
+    }
+  </script>
 
 </body>
 </html>
