@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registrar Visita</title>
+
+  <!-- QR Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background-image: url("https://images.unsplash.com/photo-1521017432531-fbd92d768814");
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+    }
+
+    .card {
+      position: relative;
+      z-index: 2;
+      background: #00754A;
+      width: 90%;
+      max-width: 380px;
+      padding: 35px 30px;
+      border-radius: 18px;
+      text-align: center;
+      color: white;
+    }
+
+    .negocio {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 25px;
+      padding: 16px;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      background: white;
+      color: #00754A;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 20px;
+      min-height: 22px;
+      font-size: 16px;
+    }
+
+    /* ===== MODAL ESCÁNER ===== */
+
+    .scan-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .scanner-container {
+      position: relative;
+      width: 280px;
+      height: 280px;
+    }
+
+    #reader {
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .scan-frame {
+      position: absolute;
+      inset: 0;
+      border: 3px solid rgba(255,255,255,0.9);
+      border-radius: 16px;
+      pointer-events: none;
+    }
+
+    .scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #00ff9d;
+      animation: scan 2s linear infinite;
+    }
+
+    @keyframes scan {
+      from { top: 10%; }
+      to { top: 90%; }
+    }
+
+    .scan-text {
+      margin-top: 15px;
+      color: white;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .btn-cancel {
+      margin-top: 18px;
+      background: #ffffff;
+      color: #333;
+      border-radius: 10px;
+      padding: 12px;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="overlay"></div>
+
+  <div class="card">
+    <div class="negocio">Restaurante Buon Appetito</div>
+    <h1>Registrar Visita</h1>
+    <p>Escanea el QR del cliente</p>
+
+    <button id="scanBtn">📷 Escanear QR</button>
+    <div id="status"></div>
+  </div>
+
+  <!-- MODAL ESCÁNER -->
+  <div id="scanModal" class="scan-modal">
+    <div>
+      <div class="scanner-container">
+        <div id="reader"></div>
+        <div class="scan-frame"></div>
+        <div class="scan-line"></div>
+      </div>
+
+      <div class="scan-text">
+        Coloca el QR dentro del marco
+      </div>
+
+      <button class="btn-cancel" onclick="cerrarEscaner()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+  const scanBtn = document.getElementById("scanBtn");
+  const scanModal = document.getElementById("scanModal");
+  const statusDiv = document.getElementById("status");
+
+  let qrScanner = null;
+
+  scanBtn.addEventListener("click", async () => {
+    scanModal.style.display = "flex";
+
+    if (qrScanner) {
+      await qrScanner.stop();
+      qrScanner.clear();
+      qrScanner = null;
+    }
+
+    qrScanner = new Html5Qrcode("reader");
+
+    qrScanner.start(
+      { facingMode: "environment" }, // ✅ funciona en móvil y PC
+      {
+        fps: 10,
+        qrbox: 220
+      },
+      (qrText) => {
+        cerrarEscaner();
+        statusDiv.innerText = "QR leído: " + qrText;
+      },
+      () => {
+        // errores normales mientras busca QR (no hacer nada)
+      }
+    );
+  });
+
+  async function cerrarEscaner() {
+    if (qrScanner) {
+      await qrScanner.stop();
+      qrScanner.clear();
+      qrScanner = null;
+    }
+    scanModal.style.display = "none";
+  }
+</script>
+
+</body>
+</html>
