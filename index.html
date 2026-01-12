@@ -172,25 +172,50 @@
   </div>
 </div>
 
-<!-- MODAL NUEVO CLIENTE -->
+<<!-- MODAL NUEVO CLIENTE -->
 <div id="nuevoClienteModal" class="scan-modal">
   <div style="background:#00754A; padding:30px; border-radius:18px; text-align:center; color:white; max-width:350px; margin:auto;">
-    <h2>Bienvenido!</h2>
+    
+    <h2>¡Bienvenido!</h2>
     <p>Ingresa tu información para registrar tu visita</p>
-    <input type="text" id="nombreInput" placeholder="Nombre completo" style="width:90%; padding:10px; margin:5px 0; border-radius:8px; border:none;">
-    <input type="date" id="cumpleInput" style="width:90%; padding:10px; margin:5px 0; border-radius:8px; border:none;">
+
+    <!-- Nombre -->
+    <label style="display:block; text-align:left; margin:10px 0 5px;">
+      Nombre completo
+    </label>
+    <input
+      type="text"
+      id="nombreInput"
+      style="width:90%; padding:10px; border-radius:8px; border:none;"
+    >
+
+    <!-- Fecha de nacimiento -->
+    <label style="display:block; text-align:left; margin:10px 0 5px;">
+      Fecha de nacimiento
+    </label>
+    <input
+      type="date"
+      id="cumpleInput"
+      style="width:90%; padding:10px; border-radius:8px; border:none;"
+    >
 
     <!-- Botón Guardar -->
-    <button onclick="guardarCliente()" style="padding:12px 20px; margin-top:10px; border:none; border-radius:10px; background:white; color:#00754A; font-weight:bold; cursor:pointer;">
+    <button
+      onclick="guardarCliente()"
+      style="padding:12px 20px; margin-top:15px; border:none; border-radius:10px; background:white; color:#00754A; font-weight:bold; cursor:pointer;">
       Guardar
     </button>
 
     <!-- Botón Cancelar -->
-    <button onclick="cerrarNuevoClienteModal()" style="padding:12px 20px; margin-top:10px; border:none; border-radius:10px; background:#ffffff; color:#333; font-weight:bold; cursor:pointer;">
+    <button
+      onclick="cerrarNuevoClienteModal()"
+      style="padding:12px 20px; margin-top:10px; border:none; border-radius:10px; background:#ffffff; color:#333; font-weight:bold; cursor:pointer;">
       Cancelar
     </button>
+
   </div>
 </div>
+
 
 
 <!-- Firebase App (el núcleo de Firebase) -->
