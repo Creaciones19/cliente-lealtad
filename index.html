@@ -150,93 +150,221 @@
 
   <div class="overlay"></div>
 
-  <div class="card">
-    <div class="negocio">Restaurante Buon Appetito</div>
-    <h1>Registrar Visita</h1>
-    <p>Escanear el QR del cliente</p>
+ <div class="card">
+  <div class="negocio">Restaurante Buon Appetito</div>
+  <h1>Registrar Visita</h1>
+  <p>Escanear el QR del cliente</p>
 
-    <button id="scanBtn">📷 Escanear QR</button>
-    <div id="status"></div>
-  </div>
+  <button id="scanBtn">📷 Escanear QR</button>
+  <div id="status"></div>
+</div>
 
-  <!-- MODAL ESCÁNER -->
-  <div id="scanModal" class="scan-modal">
-    <div>
-      <div class="scanner-container">
-        <div id="reader"></div>
-        <div class="scan-frame"></div>
-        <div class="scan-line"></div>
-      </div>
-
-      <div class="scan-text">
-        Coloca el QR dentro del marco
-      </div>
-
-      <button class="btn-cancel" onclick="cerrarEscaner()">Cancelar</button>
+<!-- MODAL ESCÁNER -->
+<div id="scanModal" class="scan-modal">
+  <div>
+    <div class="scanner-container">
+      <div id="reader"></div>
+      <div class="scan-frame"></div>
+      <div class="scan-line"></div>
     </div>
+    <div class="scan-text">Coloca el QR dentro del marco</div>
+    <button class="btn-cancel" onclick="cerrarEscaner()">Cancelar</button>
   </div>
+</div>
+
+<!-- MODAL NUEVO CLIENTE -->
+<div id="nuevoClienteModal" class="scan-modal">
+  <div style="background:#00754A; padding:30px; border-radius:18px; text-align:center; color:white; max-width:350px; margin:auto;">
+    <h2>Bienvenido!</h2>
+    <p>Ingresa tu información para registrar tu visita</p>
+    <input type="text" id="nombreInput" placeholder="Nombre completo" style="width:90%; padding:10px; margin:5px 0; border-radius:8px; border:none;">
+    <input type="date" id="cumpleInput" style="width:90%; padding:10px; margin:5px 0; border-radius:8px; border:none;">
+
+    <!-- Botón Guardar -->
+    <button onclick="guardarCliente()" style="padding:12px 20px; margin-top:10px; border:none; border-radius:10px; background:white; color:#00754A; font-weight:bold; cursor:pointer;">
+      Guardar
+    </button>
+
+    <!-- Botón Cancelar -->
+    <button onclick="cerrarNuevoClienteModal()" style="padding:12px 20px; margin-top:10px; border:none; border-radius:10px; background:#ffffff; color:#333; font-weight:bold; cursor:pointer;">
+      Cancelar
+    </button>
+  </div>
+</div>
+
+
+<!-- Firebase App (el núcleo de Firebase) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<!-- Firebase Database -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
 <script>
+  // ===== CONFIGURACIÓN FIREBASE =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
+    authDomain: "cliente-lealtad.firebaseapp.com",
+    databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
+    projectId: "cliente-lealtad",
+    storageBucket: "cliente-lealtad.firebasestorage.app",
+    messagingSenderId: "19568539350",
+    appId: "1:19568539350:web:0f545162141039a376bb77",
+    measurementId: "G-6GP76P39G8"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  // ===== ELEMENTOS DEL DOM =====
   const scanBtn = document.getElementById("scanBtn");
   const scanModal = document.getElementById("scanModal");
   const statusDiv = document.getElementById("status");
+  const nuevoClienteModal = document.getElementById("nuevoClienteModal");
 
   let qrScanner;
+  let nuevoClienteData = {};
 
-  scanBtn.addEventListener("click", () => {
-    scanModal.style.display = "flex";
+// ===== FUNCION ESCANEAR QR =====
+scanBtn.addEventListener("click", () => {
+  scanModal.style.display = "flex";
 
-    qrScanner = new Html5Qrcode("reader");
-    qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 220 },
-      (qrText) => {
-        // qrText es el ID del cliente (ej. "001")
-        registrarVisita(qrText);
-        cerrarEscaner();
-      }
-    );
-  });
-
-  function cerrarEscaner() {
-    if (qrScanner) {
-      qrScanner.stop().then(() => qrScanner.clear());
+  qrScanner = new Html5Qrcode("reader");
+  qrScanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 220 },
+    (qrText) => {
+      cerrarEscaner();
+      procesarCliente(qrText);
     }
-    scanModal.style.display = "none";
+  );
+});
+
+// ===== FUNCION CERRAR ESCANER CON MANEJO DE ERRORES =====
+function cerrarEscaner() {
+  if (qrScanner) {
+    qrScanner.stop()
+      .then(() => qrScanner.clear())
+      .catch(err => console.log("Error cerrando cámara:", err));
   }
+  scanModal.style.display = "none";
+}
 
-  // ===== FUNCIONES DE VISITAS =====
-  function registrarVisita(idCliente) {
-    const NEGOCIO_ID = "restaurante1"; // cambia según tu negocio
-    statusDiv.innerText = "Registrando visita...";
-
+  // ===== FUNCION PRINCIPAL =====
+  function procesarCliente(idCliente) {
+    const NEGOCIO_ID = "restaurante1";
     const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
 
     clienteRef.get().then(snapshot => {
-      if (!snapshot.exists()) {
-        // Si el cliente no existe, lo creamos con 1 visita
-        clienteRef.set({ visitas: 1 }).then(() => {
-          mostrarVisitas(idCliente, 1);
-        });
-      } else {
-        // Si existe, sumamos 1 visita
-        const visitasActuales = snapshot.val().visitas || 0;
-        clienteRef.update({ visitas: visitasActuales + 1 }).then(() => {
-          mostrarVisitas(idCliente, visitasActuales + 1);
+  if (!snapshot.exists()) {
+    /*
+    // Si no existe, pedimos nombre y fecha de nacimiento con prompt
+    const nombre = prompt("Ingresa tu nombre:");
+    const cumple = prompt("Ingresa tu fecha de nacimiento (AAAA-MM-DD):");
+    clienteRef.set({
+      nombre: nombre || "Cliente",
+      cumpleanos: cumple || null,
+      visitas: 1,
+      recompensaEntregada: false,
+      cumplePendiente: false
+    }).then(() => {
+      mostrarEstado(idCliente, nombre || "Cliente", 1);
+    });
+    */
+
+    // Nuevo cliente: abrimos modal para registrar datos
+    nuevoClienteModal.style.display = "flex";
+    nuevoClienteData.idCliente = idCliente;
+    nuevoClienteData.ref = clienteRef;
+
+  } else {
+    let cliente = snapshot.val();
+    let visitasActuales = cliente.visitas || 0;
+    let nombre = cliente.nombre || "Cliente";
+    let cumple = cliente.cumpleanos || null;
+    let recompensaEntregada = cliente.recompensaEntregada || false;
+    let cumplePendiente = cliente.cumplePendiente || false;
+
+    visitasActuales += 1;
+
+
+        clienteRef.update({ visitas: visitasActuales }).then(() => {
+          mostrarEstado(idCliente, nombre, visitasActuales);
+
+          // ===== DETECTAR CUMPLEAÑOS =====
+          if (cumple && visitasActuales >= 3) {
+            const hoy = new Date();
+            const cumpleDate = new Date(cumple);
+            if (hoy.getMonth() === cumpleDate.getMonth() && hoy.getDate() === cumpleDate.getDate()) {
+              alert(`🎂 ¡Feliz cumpleaños, ${nombre}! Tienes un regalo especial hoy.`);
+              clienteRef.update({ cumplePendiente: false });
+            } else if (visitasActuales >= 3 && !cumplePendiente) {
+              clienteRef.update({ cumplePendiente: true });
+            }
+          }
+
+          // ===== DETECTAR RECOMPENSA 6 VISITAS =====
+          if (visitasActuales >= 6 && !recompensaEntregada) {
+            mostrarConfeti();
+            alert(`🎉 ¡Felicidades ${nombre}! Has completado tu recompensa.`);
+            clienteRef.update({ visitas: 0, recompensaEntregada: true });
+          }
         });
       }
     }).catch(err => {
-      statusDiv.innerText = "Error al registrar visita: " + err;
+      statusDiv.innerText = "Error: " + err;
     });
   }
 
-  // ===== FUNCION PARA MOSTRAR VISITAS EN TIEMPO REAL =====
-  function mostrarVisitas(idCliente, visitas) {
+  // ===== FUNCION PARA MOSTRAR ESTADO =====
+  function mostrarEstado(idCliente, nombre, visitas) {
     statusDiv.innerHTML = `
-      Cliente <b>${idCliente}</b><br>
-      Visitas acumuladas: <b>${visitas}</b> ✅
+      ${nombre} (ID: <b>${idCliente}</b>)<br>
+      Visitas acumuladas: <b>${visitas}/6</b>
     `;
   }
+
+  // ===== FUNCION PARA CONFETI =====
+  function mostrarConfeti() {
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  }
+   // ===== FUNCION GUARDAR CLIENTES=====
+   // ===== FUNCION GUARDAR CLIENTES =====
+function guardarCliente() {
+  const nombre = document.getElementById("nombreInput").value || "Cliente";
+  const cumple = document.getElementById("cumpleInput").value || null;
+  const clienteRef = nuevoClienteData.ref;
+
+  clienteRef.set({
+    nombre: nombre,
+    cumpleanos: cumple,
+    visitas: 1,
+    recompensaEntregada: false,
+    cumplePendiente: false
+  }).then(() => {
+    mostrarEstado(nuevoClienteData.idCliente, nombre, 1);
+    nuevoClienteModal.style.display = "none";
+    document.getElementById("nombreInput").value = "";
+    document.getElementById("cumpleInput").value = "";
+  });
+}
+
+// ===== FUNCION CERRAR MODAL NUEVO CLIENTE =====
+function cerrarNuevoClienteModal() {
+  // Cierra el modal
+  nuevoClienteModal.style.display = "none";
+
+  // Limpia los campos del formulario
+  document.getElementById("nombreInput").value = "";
+  document.getElementById("cumpleInput").value = "";
+}
+
+
 </script>
+
 
 </body>
 </html>
