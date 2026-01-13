@@ -248,7 +248,7 @@
 
   let qrScanner;
   let nuevoClienteData = {};
-
+let cooldownActivo = false;  // ✅ AQUÍ VA
 // ===== FUNCION ESCANEAR QR =====
 scanBtn.addEventListener("click", () => {
   scanModal.style.display = "flex";
@@ -328,11 +328,21 @@ function cerrarEscaner() {
           }
 
           // ===== DETECTAR RECOMPENSA 6 VISITAS =====
-          if (visitasActuales >= 6 && !recompensaEntregada) {
-            mostrarConfeti();
-            alert(`🎉 ¡Felicidades ${nombre}! Has completado tu recompensa.`);
-            clienteRef.update({ visitas: 0, recompensaEntregada: true });
-          }
+// ===== DETECTAR RECOMPENSA 6 VISITAS =====
+if (visitasActuales >= 6) {
+  mostrarConfeti();
+
+  const recompensasTotales = (cliente.recompensasTotales || 0) + 1;
+
+  alert(`🎉 ${nombre}, ¡llegaste a tu recompensa! ✅
+Recompensas canjeadas: ${recompensasTotales}`);
+
+  clienteRef.update({
+    visitas: 0,
+    recompensasTotales: recompensasTotales
+  });
+}
+
         });
       }
     }).catch(err => {
@@ -357,24 +367,26 @@ function cerrarEscaner() {
     });
   }
    // ===== FUNCION GUARDAR CLIENTES=====
-   // ===== FUNCION GUARDAR CLIENTES =====
+  
 function guardarCliente() {
   const nombre = document.getElementById("nombreInput").value || "Cliente";
   const cumple = document.getElementById("cumpleInput").value || null;
   const clienteRef = nuevoClienteData.ref;
 
-  clienteRef.set({
-    nombre: nombre,
-    cumpleanos: cumple,
-    visitas: 1,
-    recompensaEntregada: false,
-    cumplePendiente: false
-  }).then(() => {
-    mostrarEstado(nuevoClienteData.idCliente, nombre, 1);
-    nuevoClienteModal.style.display = "none";
-    document.getElementById("nombreInput").value = "";
-    document.getElementById("cumpleInput").value = "";
-  });
+clienteRef.set({
+  nombre: nombre,
+  cumpleanos: cumple,
+  visitas: 1,
+  recompensaEntregada: false,
+  cumplePendiente: false,
+  recompensasTotales: 0
+}).then(() => {
+  mostrarEstado(nuevoClienteData.idCliente, nombre, 1);
+  nuevoClienteModal.style.display = "none";
+  document.getElementById("nombreInput").value = "";
+  document.getElementById("cumpleInput").value = "";
+});
+
 }
 
 // ===== FUNCION CERRAR MODAL NUEVO CLIENTE =====
