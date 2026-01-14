@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro Cliente</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body {
+      margin: 0;
+      height: 100vh;
+      background-image: url("https://images.unsplash.com/photo-1521017432531-fbd92d768814");
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); }
+    .card {
+      position: relative; z-index: 2;
+      background: #00754A;
+      width: 90%; max-width: 380px;
+      padding: 35px 30px;
+      border-radius: 18px;
+      text-align: center;
+      color: white;
+    }
+    .negocio { font-size: 22px; font-weight: 600; margin-bottom: 10px; }
+    h1 { font-size: 24px; margin-bottom: 10px; }
+    p { font-size: 15px; }
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 16px;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      background: white;
+      color: #00754A;
+      cursor: pointer;
+    }
+    #status { margin-top: 16px; min-height: 22px; font-size: 16px; }
+
+    /* Inputs con el mismo look */
+    .field { text-align:left; margin-top: 12px; }
+    .field label { display:block; margin: 6px 0; font-size: 14px; }
+    .field input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+
+    /* Tarjeta QR */
+    .qrBox{
+      margin-top: 18px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .qrName{
+      font-weight: 600;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .qrImg{
+      width: 220px;
+      height: 220px;
+      border-radius: 12px;
+      background: #fff;
+      display:block;
+      margin: 0 auto;
+      padding: 8px;
+    }
+    .hint{
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.95;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay"></div>
+
+  <div class="card">
+    <div class="negocio" id="negocioNombre">Restaurante Buon Appetito</div>
+    <h1>Registro</h1>
+    <p>Regístrate una sola vez. Luego guarda tu QR personal.</p>
+
+    <div class="field">
+      <label>Nombre completo</label>
+      <input type="text" id="nombreInput" placeholder="Ej. Juan Pérez">
+    </div>
+
+    <div class="field">
+      <label>Fecha de nacimiento</label>
+      <input type="date" id="cumpleInput">
+    </div>
+
+    <button id="btnCrear">Crear mi QR</button>
+    <button id="btnMostrar" style="display:none;">Mostrar mi QR</button>
+    <button id="btnBorrar" style="display:none; background:#ffffff; color:#333;">Borrar mi QR</button>
+
+    <div id="status"></div>
+
+    <div id="qrSection" class="qrBox" style="display:none;">
+      <div class="qrName" id="qrNombre"></div>
+      <img id="qrImg" class="qrImg" alt="QR del cliente">
+      <div class="hint">
+        En cada visita, muéstrale este QR al cajero para sumar visitas. <br>
+        Si cambias de celular, vuelve a registrarte.
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase App (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // ===== CONFIGURACIÓN FIREBASE (tu misma) =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
+      authDomain: "cliente-lealtad.firebaseapp.com",
+      databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
+      projectId: "cliente-lealtad",
+      storageBucket: "cliente-lealtad.firebasestorage.app",
+      messagingSenderId: "19568539350",
+      appId: "1:19568539350:web:0f545162141039a376bb77",
+      measurementId: "G-6GP76P39G8"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // ===== PARAMS DEL NEGOCIO (del QR del negocio) =====
+    const params = new URLSearchParams(location.search);
+    const NEGOCIO_ID = (params.get("negocio") || "restaurante1").trim();
+
+    // Nombre visible del negocio (si no mandas param, se usa mapa)
+    const NEGOCIOS = {
+      restaurante1: "Restaurante Buon Appetito",
+      barberia1: "Barbería",
+      spa1: "Spa"
+    };
+    const negocioNombre = params.get("nombre") || NEGOCIOS[NEGOCIO_ID] || "Negocio";
+
+    document.getElementById("negocioNombre").textContent = negocioNombre;
+
+    const statusDiv = document.getElementById("status");
+    const qrSection = document.getElementById("qrSection");
+    const qrNombre = document.getElementById("qrNombre");
+    const qrImg = document.getElementById("qrImg");
+
+    const btnCrear = document.getElementById("btnCrear");
+    const btnMostrar = document.getElementById("btnMostrar");
+    const btnBorrar = document.getElementById("btnBorrar");
+
+    function keyLocal() {
+      return `qr_${NEGOCIO_ID}`;
+    }
+
+    function makeIdCliente() {
+      // id corto tipo "c_7k3p9x2a"
+      return "c_" + Math.random().toString(36).slice(2, 10);
+    }
+
+    function setQRVisible(nombre, idCliente) {
+      // Contenido real del QR (lo que leerá el cajero)
+      const payload = `${NEGOCIO_ID}|${idCliente}`;
+
+      // QR como imagen (simple y rápido)
+      const urlQR = "https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=" + encodeURIComponent(payload);
+
+      qrNombre.textContent = nombre;
+      qrImg.src = urlQR;
+      qrSection.style.display = "block";
+
+      btnMostrar.style.display = "block";
+      btnBorrar.style.display = "block";
+      statusDiv.innerHTML = `Tu QR está listo. ID: <b>${idCliente}</b>`;
+    }
+
+    function loadLocal() {
+      const raw = localStorage.getItem(keyLocal());
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function saveLocal(data) {
+      localStorage.setItem(keyLocal(), JSON.stringify(data));
+    }
+
+    function clearLocal() {
+      localStorage.removeItem(keyLocal());
+    }
+
+    // Si ya existe en este celular, permite mostrar
+    const cached = loadLocal();
+    if (cached && cached.idCliente && cached.nombre) {
+      btnMostrar.style.display = "block";
+      btnBorrar.style.display = "block";
+      statusDiv.innerHTML = `Ya tienes un QR guardado.`;
+    }
+
+    btnMostrar.addEventListener("click", () => {
+      const c = loadLocal();
+      if (!c) return alert("No hay QR guardado.");
+      setQRVisible(c.nombre, c.idCliente);
+    });
+
+    btnBorrar.addEventListener("click", () => {
+      clearLocal();
+      qrSection.style.display = "none";
+      btnMostrar.style.display = "none";
+      btnBorrar.style.display = "none";
+      statusDiv.innerHTML = "QR borrado. Puedes registrarte de nuevo.";
+    });
+
+    btnCrear.addEventListener("click", async () => {
+      const nombre = (document.getElementById("nombreInput").value || "").trim();
+      const cumple = document.getElementById("cumpleInput").value || null;
+
+      if (!nombre) return alert("Escribe tu nombre.");
+      if (!cumple) return alert("Selecciona tu fecha de nacimiento.");
+
+      // Si ya existe QR en este celular, no crear otro sin borrar
+      const exist = loadLocal();
+      if (exist && exist.idCliente) {
+        return alert("Ya tienes un QR guardado. Usa 'Mostrar mi QR' o bórralo para crear otro.");
+      }
+
+      const idCliente = makeIdCliente();
+      const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+
+      // Guardar en Firebase
+      await clienteRef.set({
+        nombre: nombre,
+        cumpleanos: cumple,
+        visitas: 0,
+        recompensaPendiente: false,
+        recompensasTotales: 0,
+        createdAt: Date.now()
+      });
+
+      // Guardar en el celular
+      saveLocal({ idCliente, nombre });
+
+      // Mostrar QR
+      setQRVisible(nombre, idCliente);
+      alert("Listo. Guarda tu QR y muéstralo al cajero en cada visita.");
+    });
+  </script>
+</body>
+</html>

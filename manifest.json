@@ -1,0 +1,8 @@
+{
+  "name": "Restaurante Buon Appetito",
+  "short_name": "Buon Appetito",
+  "start_url": "./cliente.html",
+  "display": "standalone",
+  "background_color": "#00754A",
+  "theme_color": "#00754A"
+}

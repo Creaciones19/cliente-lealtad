@@ -3,405 +3,296 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Registrar Visita</title>
+  <title>Registro • Cliente</title>
 
-  <!-- QR Scanner -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#00754A">
 
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
+  <!-- QR generator -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-
+    * { box-sizing:border-box; font-family:'Poppins',sans-serif; }
     body {
-      margin: 0;
-      height: 100vh;
-      background-image: url("https://images.unsplash.com/photo-1521017432531-fbd92d768814");
-      background-size: cover;
-      background-position: center;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      margin:0; height:100vh;
+      background-image:url("https://images.unsplash.com/photo-1521017432531-fbd92d768814");
+      background-size:cover; background-position:center;
+      display:flex; justify-content:center; align-items:center;
     }
-
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); }
+    .card{
+      position:relative; z-index:2;
+      background:#00754A; width:90%; max-width:380px;
+      padding:35px 30px; border-radius:18px; text-align:center; color:white;
     }
-
-    .card {
-      position: relative;
-      z-index: 2;
-      background: #00754A;
-      width: 90%;
-      max-width: 380px;
-      padding: 35px 30px;
-      border-radius: 18px;
-      text-align: center;
-      color: white;
+    .negocio{ font-size:22px; font-weight:600; margin-bottom:10px; }
+    h1{ font-size:22px; margin:10px 0 8px; }
+    p{ font-size:14px; margin:0 0 10px; opacity:.95; }
+    label{ display:block; text-align:left; margin:10px 0 5px; font-size:14px; }
+    input{
+      width:100%; padding:12px; border-radius:10px; border:none; outline:none;
+      font-size:15px;
     }
-
-    .negocio {
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 10px;
+    button{
+      width:100%; margin-top:14px; padding:14px;
+      font-size:16px; border:none; border-radius:12px;
+      background:white; color:#00754A; cursor:pointer; font-weight:600;
     }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 10px;
+    .btn-sec{
+      background:#ffffff; color:#333; font-weight:600;
     }
-
-    p {
-      font-size: 15px;
+    #status{ margin-top:12px; min-height:22px; font-size:14px; }
+    .box{
+      margin-top:14px; background:rgba(255,255,255,0.12);
+      border-radius:14px; padding:14px;
     }
-
-    button {
-      width: 100%;
-      margin-top: 25px;
-      padding: 16px;
-      font-size: 18px;
-      border: none;
-      border-radius: 12px;
-      background: white;
-      color: #00754A;
-      cursor: pointer;
-    }
-
-    #status {
-      margin-top: 20px;
-      min-height: 22px;
-      font-size: 16px;
-    }
-
-    /* ===== MODAL ESCÁNER ===== */
-
-    .scan-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-
-    .scanner-container {
-      position: relative;
-      width: 280px;
-      height: 280px;
-    }
-
-    #reader {
-      width: 100%;
-      height: 100%;
-      border-radius: 16px;
-      overflow: hidden;
-    }
-
-    .scan-frame {
-      position: absolute;
-      inset: 0;
-      border: 3px solid rgba(255,255,255,0.9);
-      border-radius: 16px;
-      pointer-events: none;
-    }
-
-    .scan-line {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: #00ff9d;
-      animation: scan 2s linear infinite;
-    }
-
-    @keyframes scan {
-      from { top: 10%; }
-      to { top: 90%; }
-    }
-
-    .scan-text {
-      margin-top: 15px;
-      color: white;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .btn-cancel {
-      margin-top: 18px;
-      background: #ffffff;
-      color: #333;
-      border-radius: 10px;
-      padding: 12px;
-      border: none;
-      width: 100%;
-      cursor: pointer;
+    #qrWrap{ display:flex; justify-content:center; margin-top:10px; }
+    #qr{ background:#fff; padding:10px; border-radius:12px; }
+    .small{ font-size:12px; opacity:.95; margin-top:10px; line-height:1.35; }
+    .link{
+      color:#fff; text-decoration:underline; cursor:pointer;
     }
   </style>
 </head>
 
 <body>
-
   <div class="overlay"></div>
 
- <div class="card">
-  <div class="negocio">Restaurante Buon Appetito</div>
-  <h1>Registrar Visita</h1>
-  <p>Escanear el QR del cliente</p>
+  <div class="card">
+    <div class="negocio" id="negocioTitulo">Registro</div>
 
-  <button id="scanBtn">📷 Escanear QR</button>
-  <div id="status"></div>
-</div>
+    <div id="vistaRegistro">
+      <h1>Regístrate una sola vez</h1>
+      <p>Después tu QR personal quedará guardado.</p>
 
-<!-- MODAL ESCÁNER -->
-<div id="scanModal" class="scan-modal">
-  <div>
-    <div class="scanner-container">
-      <div id="reader"></div>
-      <div class="scan-frame"></div>
-      <div class="scan-line"></div>
+      <label>Nombre completo</label>
+      <input id="nombreInput" type="text" placeholder="Ej. María Pérez" />
+
+      <label>Fecha de nacimiento</label>
+      <input id="cumpleInput" type="date" />
+
+      <label>Número de teléfono (recuperación)</label>
+      <input id="telInput" type="tel" placeholder="Ej. 5512345678" inputmode="tel" />
+
+      <label>Correo electrónico (recuperación)</label>
+      <input id="emailInput" type="email" placeholder="Ej. maria@email.com" inputmode="email" />
+
+      <button id="btnCrear">Crear mi QR</button>
+
+      <div class="small">
+        Si ya te registraste y cambiaste de teléfono:
+        <span class="link" id="goRecuperar">recuperar mi QR</span>
+      </div>
+      <button
+  id="btnResetLocal"
+  style="
+    display:none;
+    margin-top:12px;
+    background:#ff4d4d;
+    color:#fff;
+    font-weight:700;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    cursor:pointer;
+  "
+>
+  🧪 Reset (solo pruebas)
+</button>
+
+      <div id="status"></div>
     </div>
-    <div class="scan-text">Coloca el QR dentro del marco</div>
-    <button class="btn-cancel" onclick="cerrarEscaner()">Cancelar</button>
+
+    <div id="vistaQR" style="display:none;">
+      <h1>Este es tu QR personal</h1>
+      <p>Guárdalo. Lo mostrarás en cada visita.</p>
+
+      <div class="box">
+        <div><b id="nombreMostrado">Cliente</b></div>
+        <div class="small">Visitas: <b id="visitasTxt">0/6</b> • Recompensas: <b id="recompTxt">0</b></div>
+
+        <div id="qrWrap"><div id="qr"></div></div>
+
+        <button id="btnGuardarApp">📲 Guardar como app</button>
+        <button class="btn-sec" id="btnScreenshot">🖼️ Tomar screenshot (recomendado)</button>
+
+        <div class="small" id="ayudaApp" style="display:none;">
+          <b>iPhone:</b> Safari → Compartir → “Agregar a pantalla de inicio”.<br>
+          <b>Android:</b> Chrome → Menú (⋮) → “Agregar a pantalla principal”.
+        </div>
+
+        <div class="small" style="margin-top:10px;">
+          Tu QR identifica tu cuenta. Si lo pierdes, usa “recuperar” con tu teléfono y correo.
+        </div>
+      </div>
+
+      <div id="status2" style="margin-top:10px; font-size:14px;"></div>
+    </div>
   </div>
-</div>
 
-<<!-- MODAL NUEVO CLIENTE -->
-<div id="nuevoClienteModal" class="scan-modal">
-  <div style="background:#00754A; padding:30px; border-radius:18px; text-align:center; color:white; max-width:350px; margin:auto;">
-    
-    <h2>¡Bienvenido!</h2>
-    <p>Ingresa tu información para registrar tu visita</p>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-    <!-- Nombre -->
-    <label style="display:block; text-align:left; margin:10px 0 5px;">
-      Nombre completo
-    </label>
-    <input
-      type="text"
-      id="nombreInput"
-      style="width:90%; padding:10px; border-radius:8px; border:none;"
-    >
+  <script>
+    // ===== CONFIG FIREBASE (TU MISMO) =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
+      authDomain: "cliente-lealtad.firebaseapp.com",
+      databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
+      projectId: "cliente-lealtad",
+      storageBucket: "cliente-lealtad.firebasestorage.app",
+      messagingSenderId: "19568539350",
+      appId: "1:19568539350:web:0f545162141039a376bb77",
+      measurementId: "G-6GP76P39G8"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-    <!-- Fecha de nacimiento -->
-    <label style="display:block; text-align:left; margin:10px 0 5px;">
-      Fecha de nacimiento
-    </label>
-    <input
-      type="date"
-      id="cumpleInput"
-      style="width:90%; padding:10px; border-radius:8px; border:none;"
-    >
-
-    <!-- Botón Guardar -->
-    <button
-      onclick="guardarCliente()"
-      style="padding:12px 20px; margin-top:15px; border:none; border-radius:10px; background:white; color:#00754A; font-weight:bold; cursor:pointer;">
-      Guardar
-    </button>
-
-    <!-- Botón Cancelar -->
-    <button
-      onclick="cerrarNuevoClienteModal()"
-      style="padding:12px 20px; margin-top:10px; border:none; border-radius:10px; background:#ffffff; color:#333; font-weight:bold; cursor:pointer;">
-      Cancelar
-    </button>
-
-  </div>
-</div>
+    // ===== NEGOCIO desde URL =====
+    const params = new URLSearchParams(location.search);
+    const NEGOCIO_ID = params.get("negocio") || "restaurante1";
+  document.getElementById("negocioTitulo").innerText =
+  "Bienvenido a Restaurante Buon Appetito";
 
 
-
-<!-- Firebase App (el núcleo de Firebase) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<!-- Firebase Database -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<!-- Confetti -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-
-<script>
-  // ===== CONFIGURACIÓN FIREBASE =====
-  const firebaseConfig = {
-    apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
-    authDomain: "cliente-lealtad.firebaseapp.com",
-    databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
-    projectId: "cliente-lealtad",
-    storageBucket: "cliente-lealtad.firebasestorage.app",
-    messagingSenderId: "19568539350",
-    appId: "1:19568539350:web:0f545162141039a376bb77",
-    measurementId: "G-6GP76P39G8"
-  };
-  firebase.initializeApp(firebaseConfig);
-
-  // ===== ELEMENTOS DEL DOM =====
-  const scanBtn = document.getElementById("scanBtn");
-  const scanModal = document.getElementById("scanModal");
-  const statusDiv = document.getElementById("status");
-  const nuevoClienteModal = document.getElementById("nuevoClienteModal");
-
-  let qrScanner;
-  let nuevoClienteData = {};
-let cooldownActivo = false;  // ✅ AQUÍ VA
-// ===== FUNCION ESCANEAR QR =====
-scanBtn.addEventListener("click", () => {
-  scanModal.style.display = "flex";
-
-  qrScanner = new Html5Qrcode("reader");
-  qrScanner.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 220 },
-    (qrText) => {
-      cerrarEscaner();
-      procesarCliente(qrText);
+    // ===== PWA register =====
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(()=>{});
     }
-  );
-});
 
-// ===== FUNCION CERRAR ESCANER CON MANEJO DE ERRORES =====
-function cerrarEscaner() {
-  if (qrScanner) {
-    qrScanner.stop()
-      .then(() => qrScanner.clear())
-      .catch(err => console.log("Error cerrando cámara:", err));
-  }
-  scanModal.style.display = "none";
-}
+    // ===== Helpers =====
+    const status = document.getElementById("status");
+    const status2 = document.getElementById("status2");
 
-  // ===== FUNCION PRINCIPAL =====
-  function procesarCliente(idCliente) {
-    const NEGOCIO_ID = "restaurante1";
-    const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+    function normEmail(v){ return (v||"").trim().toLowerCase(); }
+    function normTel(v){ return (v||"").replace(/[^\d]/g,"").trim(); }
 
-    clienteRef.get().then(snapshot => {
-  if (!snapshot.exists()) {
-    /*
-    // Si no existe, pedimos nombre y fecha de nacimiento con prompt
-    const nombre = prompt("Ingresa tu nombre:");
-    const cumple = prompt("Ingresa tu fecha de nacimiento (AAAA-MM-DD):");
-    clienteRef.set({
-      nombre: nombre || "Cliente",
-      cumpleanos: cumple || null,
-      visitas: 1,
-      recompensaEntregada: false,
-      cumplePendiente: false
-    }).then(() => {
-      mostrarEstado(idCliente, nombre || "Cliente", 1);
-    });
-    */
+    function makeId(){
+      // idCliente simple (suficiente). Si quieres más robusto luego usamos push().key
+      return "c_" + Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+    }
 
-    // Nuevo cliente: abrimos modal para registrar datos
-    nuevoClienteModal.style.display = "flex";
-    nuevoClienteData.idCliente = idCliente;
-    nuevoClienteData.ref = clienteRef;
+    function showQRView({idCliente, nombre, visitas=0, recompensasTotales=0}){
+      document.getElementById("vistaRegistro").style.display = "none";
+      document.getElementById("vistaQR").style.display = "block";
+      document.getElementById("nombreMostrado").innerText = nombre || "Cliente";
+      document.getElementById("visitasTxt").innerText = `${visitas}/6`;
+      document.getElementById("recompTxt").innerText = `${recompensasTotales}`;
 
-  } else {
-    let cliente = snapshot.val();
-    let visitasActuales = cliente.visitas || 0;
-    let nombre = cliente.nombre || "Cliente";
-    let cumple = cliente.cumpleanos || null;
-    let recompensaEntregada = cliente.recompensaEntregada || false;
-    let cumplePendiente = cliente.cumplePendiente || false;
+      // Render QR
+      const qrDiv = document.getElementById("qr");
+      qrDiv.innerHTML = "";
+      new QRCode(qrDiv, {
+        text: idCliente, width: 210, height: 210
+      });
 
-    visitasActuales += 1;
+      // Guarda en localStorage para “recordar” en este mismo teléfono
+      localStorage.setItem(`cliente_id_${NEGOCIO_ID}`, idCliente);
+      localStorage.setItem(`cliente_nombre_${NEGOCIO_ID}`, nombre || "Cliente");
+    }
 
-
-        clienteRef.update({ visitas: visitasActuales }).then(() => {
-          mostrarEstado(idCliente, nombre, visitasActuales);
-
-          // ===== DETECTAR CUMPLEAÑOS =====
-          if (cumple && visitasActuales >= 3) {
-            const hoy = new Date();
-            const cumpleDate = new Date(cumple);
-            if (hoy.getMonth() === cumpleDate.getMonth() && hoy.getDate() === cumpleDate.getDate()) {
-              alert(`🎂 ¡Feliz cumpleaños, ${nombre}! Tienes un regalo especial hoy.`);
-              clienteRef.update({ cumplePendiente: false });
-            } else if (visitasActuales >= 3 && !cumplePendiente) {
-              clienteRef.update({ cumplePendiente: true });
-            }
-          }
-
-          // ===== DETECTAR RECOMPENSA 6 VISITAS =====
-// ===== DETECTAR RECOMPENSA 6 VISITAS =====
-if (visitasActuales >= 6) {
-  mostrarConfeti();
-
-  const recompensasTotales = (cliente.recompensasTotales || 0) + 1;
-
-  alert(`🎉 ${nombre}, ¡llegaste a tu recompensa! ✅
-Recompensas canjeadas: ${recompensasTotales}`);
-
-  clienteRef.update({
-    visitas: 0,
-    recompensasTotales: recompensasTotales
-  });
-}
-
+    // Si ya había guardado su id en ESTE teléfono, muéstralo sin volver a registrarse
+    (function autoLoadIfExists(){
+      const saved = localStorage.getItem(`cliente_id_${NEGOCIO_ID}`);
+      if (!saved) return;
+      const ref = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${saved}`);
+      ref.get().then(snap=>{
+        if (!snap.exists()) return;
+        const c = snap.val() || {};
+        showQRView({
+          idCliente: saved,
+          nombre: c.nombre || "Cliente",
+          visitas: c.visitas || 0,
+          recompensasTotales: c.recompensasTotales || 0
         });
+        status2.innerText = "QR cargado desde tu dispositivo.";
+      }).catch(()=>{});
+    })();
+
+    // ===== Crear cliente =====
+    document.getElementById("btnCrear").addEventListener("click", async () => {
+      status.innerText = "";
+
+      const nombre = (document.getElementById("nombreInput").value || "").trim();
+      const cumple = document.getElementById("cumpleInput").value || null;
+      const tel = normTel(document.getElementById("telInput").value);
+      const email = normEmail(document.getElementById("emailInput").value);
+
+      if (!nombre) return (status.innerText = "Ingresa tu nombre.");
+      if (!tel) return (status.innerText = "Ingresa tu teléfono (recuperación).");
+      if (!email) return (status.innerText = "Ingresa tu correo (recuperación).");
+
+      // Crea cliente
+      const idCliente = makeId();
+      const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+
+      // Índice para recuperación (nivel 1 sin OTP): email+tel → idCliente
+      const idxKey = (email + "_" + tel);
+      const idxRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/recoveryIndex/${idxKey}`);
+
+      try{
+        await clienteRef.set({
+          nombre,
+          cumpleanos: cumple,
+          telefono: tel,
+          email: email,
+          visitas: 0,
+          recompensaPendiente: false,
+          recompensasTotales: 0,
+          creadoEn: Date.now()
+        });
+
+        await idxRef.set({ idCliente, creadoEn: Date.now() });
+
+        showQRView({ idCliente, nombre, visitas: 0, recompensasTotales: 0 });
+        status2.innerText = "Listo. Guarda tu QR para usarlo en cada visita.";
+
+      }catch(e){
+        status.innerText = "Error: " + e.message;
       }
-    }).catch(err => {
-      statusDiv.innerText = "Error: " + err;
     });
-  }
 
-  // ===== FUNCION PARA MOSTRAR ESTADO =====
-  function mostrarEstado(idCliente, nombre, visitas) {
-    statusDiv.innerHTML = `
-      ${nombre} (ID: <b>${idCliente}</b>)<br>
-      Visitas acumuladas: <b>${visitas}/6</b>
-    `;
-  }
-
-  // ===== FUNCION PARA CONFETI =====
-  function mostrarConfeti() {
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 }
+    // ===== Botón “Guardar como app” (instrucciones) =====
+    document.getElementById("btnGuardarApp").addEventListener("click", () => {
+      document.getElementById("ayudaApp").style.display = "block";
     });
-  }
-   // ===== FUNCION GUARDAR CLIENTES=====
-  
-function guardarCliente() {
-  const nombre = document.getElementById("nombreInput").value || "Cliente";
-  const cumple = document.getElementById("cumpleInput").value || null;
-  const clienteRef = nuevoClienteData.ref;
 
-clienteRef.set({
-  nombre: nombre,
-  cumpleanos: cumple,
-  visitas: 1,
-  recompensaEntregada: false,
-  cumplePendiente: false,
-  recompensasTotales: 0
-}).then(() => {
-  mostrarEstado(nuevoClienteData.idCliente, nombre, 1);
-  nuevoClienteModal.style.display = "none";
-  document.getElementById("nombreInput").value = "";
-  document.getElementById("cumpleInput").value = "";
-});
+    // ===== Botón screenshot (solo instrucción) =====
+    document.getElementById("btnScreenshot").addEventListener("click", () => {
+      alert("Haz screenshot a tu QR para guardarlo en tu galería. Luego lo muestras en cada visita.");
+    });
 
-}
+    // Ir a recuperar
+    document.getElementById("goRecuperar").addEventListener("click", () => {
+      location.href = `./recuperar.html?negocio=${encodeURIComponent(NEGOCIO_ID)}`;
+    });
+  </script>
+  <script>
+  // ===== DEBUG ON SOLO CON ?debug=1 =====
+  const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
 
-// ===== FUNCION CERRAR MODAL NUEVO CLIENTE =====
-function cerrarNuevoClienteModal() {
-  // Cierra el modal
-  nuevoClienteModal.style.display = "none";
+  // Muestra el botón solo en debug
+  (function () {
+    const btn = document.getElementById("btnResetLocal");
+    if (!btn) return;
 
-  // Limpia los campos del formulario
-  document.getElementById("nombreInput").value = "";
-  document.getElementById("cumpleInput").value = "";
-}
+    if (DEBUG) btn.style.display = "block";
 
+    btn.addEventListener("click", () => {
+      const ok = confirm("🧪 Reset LOCAL: borrará datos guardados en este teléfono (localStorage). ¿Continuar?");
+      if (!ok) return;
 
+      // Borra TODO el localStorage de este dominio (GitHub Pages)
+      localStorage.clear();
+
+      alert("✅ Listo. Se limpió el localStorage. Recarga la página para probar como cliente nuevo.");
+      location.reload();
+    });
+  })();
 </script>
-
-
 </body>
 </html>

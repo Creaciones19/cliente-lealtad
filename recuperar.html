@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recuperar • Cliente</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <style>
+    *{ box-sizing:border-box; font-family:'Poppins',sans-serif; }
+    body{
+      margin:0; height:100vh;
+      background-image:url("https://images.unsplash.com/photo-1521017432531-fbd92d768814");
+      background-size:cover; background-position:center;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.55); }
+    .card{
+      position:relative; z-index:2;
+      background:#00754A; width:90%; max-width:380px;
+      padding:35px 30px; border-radius:18px; text-align:center; color:white;
+    }
+    h1{ font-size:22px; margin:0 0 8px; }
+    p{ font-size:14px; margin:0 0 10px; opacity:.95; }
+    label{ display:block; text-align:left; margin:10px 0 5px; font-size:14px; }
+    input{ width:100%; padding:12px; border-radius:10px; border:none; outline:none; font-size:15px; }
+    button{
+      width:100%; margin-top:14px; padding:14px;
+      font-size:16px; border:none; border-radius:12px;
+      background:white; color:#00754A; cursor:pointer; font-weight:600;
+    }
+    .btn-sec{ background:#fff; color:#333; }
+    #status{ margin-top:12px; min-height:22px; font-size:14px; }
+    #qr{ background:#fff; padding:10px; border-radius:12px; display:inline-block; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="card">
+   <h1 id="tituloNegocio"></h1>
+<h2>Recuperar mi QR</h2>
+
+
+    <p>Ingresa el mismo teléfono y correo con los que te registraste.</p>
+
+    <label>Teléfono</label>
+    <input id="telInput" type="tel" placeholder="Ej. 5512345678" inputmode="tel">
+
+    <label>Correo</label>
+    <input id="emailInput" type="email" placeholder="Ej. maria@email.com" inputmode="email">
+
+    <button id="btnRec">Recuperar</button>
+    <button class="btn-sec" id="btnVolver">Volver a registro</button>
+
+    <div id="status"></div>
+    <div id="qrWrap" style="display:none;">
+      <div style="margin-top:10px;"><b id="nombreTxt"></b></div>
+      <div id="qr"></div>
+      <div style="margin-top:10px; font-size:12px; opacity:.95;">
+        Haz screenshot a tu QR para guardarlo.
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
+      authDomain: "cliente-lealtad.firebaseapp.com",
+      databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
+      projectId: "cliente-lealtad",
+      storageBucket: "cliente-lealtad.firebasestorage.app",
+      messagingSenderId: "19568539350",
+      appId: "1:19568539350:web:0f545162141039a376bb77",
+      measurementId: "G-6GP76P39G8"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const params = new URLSearchParams(location.search);
+    const NEGOCIO_ID = params.get("negocio") || "buonappetito";
+    const NOMBRES_NEGOCIO = {
+  restaurante1: "Restaurante Demo",
+  buonappetito: "Restaurante Buon Appetito"
+};
+
+document.getElementById("tituloNegocio").innerText =
+  NOMBRES_NEGOCIO[NEGOCIO_ID] || NEGOCIO_ID;
+
+
+    function normEmail(v){ return (v||"").trim().toLowerCase(); }
+    function normTel(v){ return (v||"").replace(/[^\d]/g,"").trim(); }
+
+    const status = document.getElementById("status");
+    const qrWrap = document.getElementById("qrWrap");
+
+    document.getElementById("btnRec").addEventListener("click", async ()=>{
+      status.innerText = "";
+      qrWrap.style.display = "none";
+
+      const tel = normTel(document.getElementById("telInput").value);
+      const email = normEmail(document.getElementById("emailInput").value);
+
+      if (!tel) return (status.innerText = "Ingresa tu teléfono.");
+      if (!email) return (status.innerText = "Ingresa tu correo.");
+
+      const idxKey = (email + "_" + tel);
+      const idxRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/recoveryIndex/${idxKey}`);
+
+      try{
+        const idxSnap = await idxRef.get();
+        if (!idxSnap.exists()) return (status.innerText = "No se encontró registro con esos datos.");
+
+        const { idCliente } = idxSnap.val() || {};
+        if (!idCliente) return (status.innerText = "Registro inválido.");
+
+        const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+        const cSnap = await clienteRef.get();
+        if (!cSnap.exists()) return (status.innerText = "Cliente no encontrado.");
+
+        const c = cSnap.val() || {};
+        const nombre = c.nombre || "Cliente";
+
+        // Render QR
+        const qrDiv = document.getElementById("qr");
+qrDiv.innerHTML = "";
+new QRCode(qrDiv, {
+  text: `${NEGOCIO_ID}|${idCliente}`,
+  width: 210,
+  height: 210
+});
+
+
+        document.getElementById("nombreTxt").innerText = nombre;
+        qrWrap.style.display = "block";
+        status.innerText = "QR recuperado. Guárdalo.";
+
+        // guarda localmente para este teléfono
+        localStorage.setItem(`cliente_id_${NEGOCIO_ID}`, idCliente);
+        localStorage.setItem(`cliente_nombre_${NEGOCIO_ID}`, nombre);
+
+      }catch(e){
+        status.innerText = "Error: " + e.message;
+      }
+    });
+
+    document.getElementById("btnVolver").addEventListener("click", ()=>{
+      location.href = `./cliente.html?negocio=${encodeURIComponent(NEGOCIO_ID)}`;
+    });
+  </script>
+</body>
+</html>
