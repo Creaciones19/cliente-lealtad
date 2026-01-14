@@ -159,7 +159,7 @@
 
   <script>
     const params = new URLSearchParams(location.search);
-const NEGOCIO_ID = params.get("negocio") || "restaurante1";
+const NEGOCIO_ID = params.get("negocio") || "buonappetito";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
@@ -215,14 +215,9 @@ const NEGOCIO_ID = params.get("negocio") || "restaurante1";
           if (!raw) return alert("QR inválido. Intenta de nuevo.");
 
           // Formato esperado: negocio|idCliente
-          const parts = raw.split("|");
-          if (parts.length !== 2) return alert("QR inválido. Debe ser formato NEGOCIO|CLIENTE.");
+          const idCliente = raw; // ahora el QR solo trae el ID
+procesarCliente(NEGOCIO_ID, idCliente);
 
-          const negocioId = parts[0].trim();
-          const idCliente = parts[1].trim();
-          if (!negocioId || !idCliente) return alert("QR inválido.");
-
-          procesarCliente(negocioId, idCliente);
         }
       ).catch(err => {
         console.log("Error al iniciar cámara:", err);
@@ -235,7 +230,7 @@ const NEGOCIO_ID = params.get("negocio") || "restaurante1";
 //   return;
 // }
 
-procesarCliente(negocioId, idCliente);
+
 
     function cerrarEscaner() {
       if (qrScanner) {
@@ -296,8 +291,9 @@ procesarCliente(negocioId, idCliente);
       if (cooldownActivo) return;
       cooldownActivo = true;
       setTimeout(() => cooldownActivo = false, COOLDOWN_MS);
+const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
 
-      const clienteRef = firebase.database().ref(`negocios/${negocioId}/clientes/${idCliente}`);
+
 
       clienteRef.get().then(snapshot => {
         if (!snapshot.exists()) {

@@ -143,16 +143,17 @@
   <script>
     // ===== CONFIG FIREBASE (TU MISMO) =====
     const firebaseConfig = {
-      apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
-      authDomain: "cliente-lealtad.firebaseapp.com",
-      databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
-      projectId: "cliente-lealtad",
-      storageBucket: "cliente-lealtad.firebasestorage.app",
-      messagingSenderId: "19568539350",
-      appId: "1:19568539350:web:0f545162141039a376bb77",
-      measurementId: "G-6GP76P39G8"
-    };
-    firebase.initializeApp(firebaseConfig);
+    apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
+    authDomain: "cliente-lealtad.firebaseapp.com",
+    databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
+    projectId: "cliente-lealtad",
+    storageBucket: "cliente-lealtad.firebasestorage.app",
+    messagingSenderId: "19568539350",
+    appId: "1:19568539350:web:0f545162141039a376bb77",
+    measurementId: "G-6GP76P39G8"
+  };
+  firebase.initializeApp(firebaseConfig);
+
 
     // ===== NEGOCIO desde URL =====
     const params = new URLSearchParams(location.search);
@@ -178,24 +179,30 @@
       return "c_" + Math.random().toString(36).slice(2,10) + Date.now().toString(36);
     }
 
-    function showQRView({idCliente, nombre, visitas=0, recompensasTotales=0}){
-      document.getElementById("vistaRegistro").style.display = "none";
-      document.getElementById("vistaQR").style.display = "block";
-      document.getElementById("nombreMostrado").innerText = nombre || "Cliente";
-      document.getElementById("visitasTxt").innerText = `${visitas}/6`;
-      document.getElementById("recompTxt").innerText = `${recompensasTotales}`;
+ function showQRView({idCliente, nombre, visitas=0, recompensasTotales=0}) {
+  document.getElementById("vistaRegistro").style.display = "none";
+  document.getElementById("vistaQR").style.display = "block";
 
-      // Render QR
-      const qrDiv = document.getElementById("qr");
-      qrDiv.innerHTML = "";
-      new QRCode(qrDiv, {
-        text: idCliente, width: 210, height: 210
-      });
+  document.getElementById("nombreMostrado").innerText = nombre || "Cliente";
+  document.getElementById("visitasTxt").innerText = `${visitas}/6`;
+  document.getElementById("recompTxt").innerText = `${recompensasTotales}`;
 
-      // Guarda en localStorage para “recordar” en este mismo teléfono
-      localStorage.setItem(`cliente_id_${NEGOCIO_ID}`, idCliente);
-      localStorage.setItem(`cliente_nombre_${NEGOCIO_ID}`, nombre || "Cliente");
-    }
+  // Espera a que el DOM pinte la vista
+  requestAnimationFrame(() => {
+    const qrDiv = document.getElementById("qr");
+    qrDiv.innerHTML = "";
+
+    new QRCode(qrDiv, {
+      text: idCliente,
+      width: 210,
+      height: 210,
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  });
+
+  localStorage.setItem(`cliente_id_${NEGOCIO_ID}`, idCliente);
+  localStorage.setItem(`cliente_nombre_${NEGOCIO_ID}`, nombre || "Cliente");
+}
 
     // Si ya había guardado su id en ESTE teléfono, muéstralo sin volver a registrarse
     (function autoLoadIfExists(){

@@ -128,21 +128,23 @@
 
   <script>
     // ===== CONFIGURACIÓN FIREBASE (tu misma) =====
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
-      authDomain: "cliente-lealtad.firebaseapp.com",
-      databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
-      projectId: "cliente-lealtad",
-      storageBucket: "cliente-lealtad.firebasestorage.app",
-      messagingSenderId: "19568539350",
-      appId: "1:19568539350:web:0f545162141039a376bb77",
-      measurementId: "G-6GP76P39G8"
-    };
-    firebase.initializeApp(firebaseConfig);
+     const firebaseConfig = {
+    apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
+    authDomain: "cliente-lealtad.firebaseapp.com",
+    databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
+    projectId: "cliente-lealtad",
+    storageBucket: "cliente-lealtad.firebasestorage.app",
+    messagingSenderId: "19568539350",
+    appId: "1:19568539350:web:0f545162141039a376bb77",
+    measurementId: "G-6GP76P39G8"
+  };
+  firebase.initializeApp(firebaseConfig);
+
 
     // ===== PARAMS DEL NEGOCIO (del QR del negocio) =====
     const params = new URLSearchParams(location.search);
-    const NEGOCIO_ID = (params.get("negocio") || "restaurante1").trim();
+   const NEGOCIO_ID = "clientes";
+
 
     // Nombre visible del negocio (si no mandas param, se usa mapa)
     const NEGOCIOS = {
@@ -238,7 +240,8 @@
       }
 
       const idCliente = makeIdCliente();
-      const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+  const clienteRef = firebase.database().ref(`${NEGOCIO_ID}/${idCliente}`);
+
 
       // Guardar en Firebase
       await clienteRef.set({

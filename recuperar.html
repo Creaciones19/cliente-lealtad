@@ -69,17 +69,18 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
-      authDomain: "cliente-lealtad.firebaseapp.com",
-      databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
-      projectId: "cliente-lealtad",
-      storageBucket: "cliente-lealtad.firebasestorage.app",
-      messagingSenderId: "19568539350",
-      appId: "1:19568539350:web:0f545162141039a376bb77",
-      measurementId: "G-6GP76P39G8"
-    };
-    firebase.initializeApp(firebaseConfig);
+  const firebaseConfig = {
+    apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
+    authDomain: "cliente-lealtad.firebaseapp.com",
+    databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
+    projectId: "cliente-lealtad",
+    storageBucket: "cliente-lealtad.firebasestorage.app",
+    messagingSenderId: "19568539350",
+    appId: "1:19568539350:web:0f545162141039a376bb77",
+    measurementId: "G-6GP76P39G8"
+  };
+  firebase.initializeApp(firebaseConfig);
+
 
     const params = new URLSearchParams(location.search);
     const NEGOCIO_ID = params.get("negocio") || "buonappetito";
@@ -129,7 +130,8 @@ document.getElementById("tituloNegocio").innerText =
         const qrDiv = document.getElementById("qr");
 qrDiv.innerHTML = "";
 new QRCode(qrDiv, {
-  text: `${NEGOCIO_ID}|${idCliente}`,
+ text: idCliente,
+
   width: 210,
   height: 210
 });
