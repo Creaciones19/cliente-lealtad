@@ -281,22 +281,7 @@ function cerrarEscaner() {
 
     clienteRef.get().then(snapshot => {
   if (!snapshot.exists()) {
-    /*
-    // Si no existe, pedimos nombre y fecha de nacimiento con prompt
-    const nombre = prompt("Ingresa tu nombre:");
-    const cumple = prompt("Ingresa tu fecha de nacimiento (AAAA-MM-DD):");
-    clienteRef.set({
-      nombre: nombre || "Cliente",
-      cumpleanos: cumple || null,
-      visitas: 1,
-      recompensaEntregada: false,
-      cumplePendiente: false
-    }).then(() => {
-      mostrarEstado(idCliente, nombre || "Cliente", 1);
-    });
-    */
-
-    // Nuevo cliente: abrimos modal para registrar datos
+    
     nuevoClienteModal.style.display = "flex";
     nuevoClienteData.idCliente = idCliente;
     nuevoClienteData.ref = clienteRef;
@@ -399,7 +384,22 @@ function cerrarNuevoClienteModal() {
   document.getElementById("cumpleInput").value = "";
 }
 
+/*
+    // Si no existe, pedimos nombre y fecha de nacimiento con prompt
+    const nombre = prompt("Ingresa tu nombre:");
+    const cumple = prompt("Ingresa tu fecha de nacimiento (AAAA-MM-DD):");
+    clienteRef.set({
+      nombre: nombre || "Cliente",
+      cumpleanos: cumple || null,
+      visitas: 1,
+      recompensaEntregada: false,
+      cumplePendiente: false
+    }).then(() => {
+      mostrarEstado(idCliente, nombre || "Cliente", 1);
+    });
+    */
 
+    // Nuevo cliente: abrimos modal para registrar datos
 </script>
 
 
