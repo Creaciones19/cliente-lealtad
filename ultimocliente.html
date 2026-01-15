@@ -211,17 +211,6 @@
     if (!firebase.apps || !firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
-    // =====================================================
-// ===== PWA: registrar Service Worker (NECESARIO) ======
-// =====================================================
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("./sw.js")
-      .then(() => console.log("✅ SW registrado"))
-      .catch((err) => console.log("❌ No se pudo registrar SW:", err));
-  });
-}
 
     function normEmail(v){ return (v||"").trim().toLowerCase(); }
     function normTel(v){ return (v||"").replace(/[^\d]/g,"").trim(); }
@@ -278,7 +267,6 @@ if ("serviceWorker" in navigator) {
       const cumple = document.getElementById("cumpleInput").value || null;
       const tel = normTel(document.getElementById("telInput").value);
       const email = normEmail(document.getElementById("emailInput").value);
-      
 
       if (!nombre) return (status.innerText = "Ingresa tu nombre.");
       if (!tel) return (status.innerText = "Ingresa tu teléfono (recuperación).");
@@ -387,7 +375,6 @@ if (btnShot) {
     });
   })();
 </script>
-<!--
 <script>
   (async () => {
     try{
@@ -405,8 +392,6 @@ if (btnShot) {
     }
   })();
 </script>
--->
-
 
 </body>
 </html>
