@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Registro • Cliente</title>
 
-  <!-- PWA -->
+  <!-- PWA (si no existe el archivo, dará 404 pero NO rompe) -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#00754A">
 
@@ -14,7 +14,6 @@
 
   <!-- QR generator -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 
   <style>
     * { box-sizing:border-box; font-family:'Poppins',sans-serif; }
@@ -25,12 +24,11 @@
       display:flex; justify-content:center; align-items:center;
     }
     .overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.55);
-  pointer-events:none; /* <- CLAVE: no bloquea clicks */
-}
-
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.55);
+      pointer-events:none; /* no bloquea clicks */
+    }
     .card{
       position:relative; z-index:2;
       background:#00754A; width:90%; max-width:380px;
@@ -49,9 +47,7 @@
       font-size:16px; border:none; border-radius:12px;
       background:white; color:#00754A; cursor:pointer; font-weight:600;
     }
-    .btn-sec{
-      background:#ffffff; color:#333; font-weight:600;
-    }
+    .btn-sec{ background:#ffffff; color:#333; font-weight:600; }
     #status{ margin-top:12px; min-height:22px; font-size:14px; }
     .box{
       margin-top:14px; background:rgba(255,255,255,0.12);
@@ -60,113 +56,64 @@
     #qrWrap{ display:flex; justify-content:center; margin-top:10px; }
     #qr{ background:#fff; padding:10px; border-radius:12px; }
     .small{ font-size:12px; opacity:.95; margin-top:10px; line-height:1.35; }
-    .link{
-      color:#fff; text-decoration:underline; cursor:pointer;
-    }
-    #btnCrear{
-  position:relative;
-  z-index:9999;
-  pointer-events:auto;
-}
+    .link{ color:#fff; text-decoration:underline; cursor:pointer; }
 
+    #btnCrear{
+      position:relative;
+      z-index:9999;
+      pointer-events:auto;
+    }
   </style>
 </head>
 
 <body>
   <div class="overlay"></div>
 
-<div class="card">
-  <div class="negocio" id="negocioTitulo">Registro</div>
+  <div class="card">
+    <div class="negocio" id="negocioTitulo">Registro</div>
 
-  <div id="vistaRegistro">
-    <h1>Regístrate una sola vez</h1>
-    <p>Después tu QR personal quedará guardado.</p>
+    <div id="vistaRegistro">
+      <h1>Regístrate una sola vez</h1>
+      <p>Después tu QR personal quedará guardado.</p>
 
-    <label>Nombre completo</label>
-    <input id="nombreInput" type="text" placeholder="Ej. María Pérez" />
+      <label>Nombre completo</label>
+      <input id="nombreInput" type="text" placeholder="Ej. María Pérez" />
 
-    <label>Fecha de nacimiento</label>
-    <input id="cumpleInput" type="date" />
+      <label>Fecha de nacimiento</label>
+      <input id="cumpleInput" type="date" />
 
-    <label>Número de teléfono (recuperación)</label>
-    <input
-      id="telInput"
-      type="tel"
-      placeholder="Ej. 5512345678"
-      inputmode="tel"
-    />
+      <label>Número de teléfono (recuperación)</label>
+      <input id="telInput" type="tel" placeholder="Ej. 5512345678" inputmode="tel" />
 
-    <label>Correo electrónico (recuperación)</label>
-    <input
-      id="emailInput"
-      type="email"
-      placeholder="Ej. maria@email.com"
-      inputmode="email"
-    />
+      <label>Correo electrónico (recuperación)</label>
+      <input id="emailInput" type="email" placeholder="Ej. maria@email.com" inputmode="email" />
 
-    <!-- BOTÓN CORRECTO (UNA SOLA VEZ, SIN ANIDAR) -->
-    <button type="button" id="btnCrear">Crear mi QR</button>
+      <button type="button" id="btnCrear">Crear mi QR</button>
 
-    <div class="small">
-      Si ya te registraste y cambiaste de teléfono:
-      <span class="link" id="goRecuperar">recuperar mi QR</span>
-    </div>
-
-    <button
-      id="btnResetLocal"
-      style="
-        display: none;
-        margin-top: 12px;
-        background: #ff4d4d;
-        color: #fff;
-        font-weight: 700;
-        border: none;
-        border-radius: 12px;
-        padding: 14px;
-        cursor: pointer;
-      "
-    >
-      🧪 Reset (solo pruebas)
-    </button>
-
-    <div id="status"></div>
-  </div>
-
-  <div id="vistaQR" style="display: none;">
-    <h1>Este es tu QR personal</h1>
-    <p>Guárdalo. Lo mostrarás en cada visita.</p>
-
-    <div class="box">
-      <div><b id="nombreMostrado">Cliente</b></div>
       <div class="small">
-        Visitas: <b id="visitasTxt">0/6</b> • Recompensas:
-        <b id="recompTxt">0</b>
+        Si ya te registraste y cambiaste de teléfono:
+        <span class="link" id="goRecuperar">recuperar mi QR</span>
       </div>
 
-      <div id="qrWrap">
-        <div id="qr"></div>
-      </div>
-
-      <button id="btnGuardarApp">📲 Guardar como app</button>
-      <button class="btn-sec" id="btnScreenshot">
-        🖼️ Tomar screenshot (recomendado)
+      <button
+        id="btnResetLocal"
+        style="
+          display:none;
+          margin-top:12px;
+          background:#ff4d4d;
+          color:#fff;
+          font-weight:700;
+          border:none;
+          border-radius:12px;
+          padding:14px;
+          cursor:pointer;
+        "
+      >
+        🧪 Reset (solo pruebas)
       </button>
 
-      <div class="small" id="ayudaApp" style="display: none;">
-        <b>iPhone:</b> Safari → Compartir → “Agregar a pantalla de inicio”.<br />
-        <b>Android:</b> Chrome → Menú (⋮) → “Agregar a pantalla principal”.
-      </div>
-
-      <div class="small" style="margin-top: 10px;">
-        Tu QR identifica tu cuenta. Si lo pierdes, usa “recuperar” con tu teléfono
-        y correo.
-      </div>
+      <div id="status"></div>
     </div>
-
-    <div id="status2" style="margin-top: 10px; font-size: 14px;"></div>
-  </div>
-</div>
-
 
     <div id="vistaQR" style="display:none;">
       <h1>Este es tu QR personal</h1>
@@ -197,233 +144,175 @@
 
   <!-- Firebase -->
   <script
-  src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
-  onerror="document.getElementById('status').innerText='Error: no cargó firebase-app-compat.js';"
-></script>
+    src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
+    onerror="document.getElementById('status').innerText='Error: no cargó firebase-app-compat.js';"
+  ></script>
 
-<script
-  src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"
-  onerror="document.getElementById('status').innerText='Error: no cargó firebase-database-compat.js';"
-></script>
-<!-- Confetti -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script
+    src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"
+    onerror="document.getElementById('status').innerText='Error: no cargó firebase-database-compat.js';"
+  ></script>
 
- <script>
-  // ===== Helpers visuales de error (para que NO muera "en silencio") =====
-  const status = document.getElementById("status");
-  const status2 = document.getElementById("status2");
+  <!-- Confetti (opcional) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
-  window.addEventListener("error", (e) => {
-    if (status) status.innerText = "JS Error: " + (e.message || e.type);
-    console.error(e);
-  });
+  <script>
+    // ===== Helpers visuales de error =====
+    const status = document.getElementById("status");
+    const status2 = document.getElementById("status2");
 
-  window.addEventListener("unhandledrejection", (e) => {
-    if (status) status.innerText = "Promise Error: " + (e.reason?.message || e.reason);
-    console.error(e);
-  });
-
-  // ===== NEGOCIO desde URL =====
-  const params = new URLSearchParams(location.search);
-  const NEGOCIO_ID = params.get("negocio") || "restaurante1";
-
-  // Título visible
-  const negocioTitulo = document.getElementById("negocioTitulo");
-  if (negocioTitulo) negocioTitulo.innerText = "Bienvenido a Restaurante Buon Appetito";
-
-  // ===== PWA register (apagado por debug / evitar caché) =====
-  // if ("serviceWorker" in navigator) {
-  //   navigator.serviceWorker.register("./sw.js").catch(() => {});
-  // }
-
-  // ===== Validación de librerías externas =====
-  if (typeof QRCode === "undefined") {
-    if (status) status.innerText = "Error: no cargó la librería de QR (qrcodejs).";
-    throw new Error("QRCode no cargó");
-  }
-
-  // ===== CONFIG FIREBASE =====
-  const firebaseConfig = {
-    apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
-    authDomain: "cliente-lealtad.firebaseapp.com",
-    databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
-    projectId: "cliente-lealtad",
-    storageBucket: "cliente-lealtad.firebasestorage.app",
-    messagingSenderId: "19568539350",
-    appId: "1:19568539350:web:0f545162141039a376bb77",
-    measurementId: "G-6GP76P39G8"
-  };
-
-  if (typeof firebase === "undefined") {
-    if (status) status.innerText = "Error: Firebase no está disponible (scripts no cargaron).";
-    throw new Error("Firebase no cargó");
-  }
-
-  // Evita inicializar dos veces si la página se re-evalúa por caché/PWA
-  if (!firebase.apps || !firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-
-  // ===== Normalizadores =====
-  function normEmail(v) {
-    return (v || "").trim().toLowerCase();
-  }
-
-  function normTel(v) {
-    return (v || "").replace(/[^\d]/g, "").trim();
-  }
-
-  function makeId() {
-    return "c_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  }
-
-  // Key segura para RTDB (evita . # $ [ ] / en paths)
-  function safeKey(str) {
-    return btoa(unescape(encodeURIComponent(str))).replace(/=+/g, "");
-  }
-
-  // Mejor formateo de error
-  function showErr(e) {
-    const msg = (e && (e.message || e.code))
-      ? `${e.code || ""} ${e.message || ""}`.trim()
-      : String(e);
-    if (status) status.innerText = "Error: " + msg;
-  }
-
-  // ===== Vista QR =====
-  function showQRView({ idCliente, nombre, visitas = 0, recompensasTotales = 0 }) {
-    const vistaRegistro = document.getElementById("vistaRegistro");
-    const vistaQR = document.getElementById("vistaQR");
-
-    if (vistaRegistro) vistaRegistro.style.display = "none";
-    if (vistaQR) vistaQR.style.display = "block";
-
-    const nombreMostrado = document.getElementById("nombreMostrado");
-    const visitasTxt = document.getElementById("visitasTxt");
-    const recompTxt = document.getElementById("recompTxt");
-
-    if (nombreMostrado) nombreMostrado.innerText = nombre || "Cliente";
-    if (visitasTxt) visitasTxt.innerText = `${visitas}/6`;
-    if (recompTxt) recompTxt.innerText = `${recompensasTotales}`;
-
-    requestAnimationFrame(() => {
-      const qrDiv = document.getElementById("qr");
-      if (!qrDiv) return;
-      qrDiv.innerHTML = "";
-
-      new QRCode(qrDiv, {
-        text: idCliente,
-        width: 210,
-        height: 210,
-        correctLevel: QRCode.CorrectLevel.H
-      });
+    window.addEventListener("error", (e) => {
+      if (status) status.innerText = "JS Error: " + (e.message || e.type);
+      console.error(e);
     });
 
-    localStorage.setItem(`cliente_id_${NEGOCIO_ID}`, idCliente);
-    localStorage.setItem(`cliente_nombre_${NEGOCIO_ID}`, nombre || "Cliente");
-  }
+    window.addEventListener("unhandledrejection", (e) => {
+      if (status) status.innerText = "Promise Error: " + (e.reason?.message || e.reason);
+      console.error(e);
+    });
 
-  // ===== Auto-cargar si ya existe en este dispositivo =====
-  (function autoLoadIfExists() {
-    const saved = localStorage.getItem(`cliente_id_${NEGOCIO_ID}`);
-    if (!saved) return;
+    // ===== NEGOCIO desde URL =====
+    const params = new URLSearchParams(location.search);
+    const NEGOCIO_ID = params.get("negocio") || "restaurante1";
 
-    const ref = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${saved}`);
-    ref.get()
-      .then((snap) => {
-        if (!snap.exists()) return;
-        const c = snap.val() || {};
-        showQRView({
-          idCliente: saved,
-          nombre: c.nombre || "Cliente",
-          visitas: c.visitas || 0,
-          recompensasTotales: c.recompensasTotales || 0
-        });
-        if (status2) status2.innerText = "QR cargado desde tu dispositivo.";
-      })
-      .catch(() => {});
-  })();
+    const negocioTitulo = document.getElementById("negocioTitulo");
+    if (negocioTitulo) negocioTitulo.innerText = "Bienvenido a Restaurante Buon Appetito";
 
-  // ===== Crear cliente =====
-  const btnCrear = document.getElementById("btnCrear");
-  if (!btnCrear) {
-    if (status) status.innerText = "Error: no existe el botón btnCrear en el HTML.";
-    throw new Error("btnCrear no existe");
-  }
+    // ===== Validación QR =====
+    if (typeof QRCode === "undefined") {
+      if (status) status.innerText = "Error: no cargó la librería de QR (qrcodejs).";
+      throw new Error("QRCode no cargó");
+    }
 
-  btnCrear.addEventListener("click", async () => {
-    if (status) status.innerText = "";
+    // ===== Firebase =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbFAbpOJvhBu_QR16Ep7WfRqcLaHW1F1s",
+      authDomain: "cliente-lealtad.firebaseapp.com",
+      databaseURL: "https://cliente-lealtad-default-rtdb.firebaseio.com",
+      projectId: "cliente-lealtad",
+      storageBucket: "cliente-lealtad.firebasestorage.app",
+      messagingSenderId: "19568539350",
+      appId: "1:19568539350:web:0f545162141039a376bb77",
+      measurementId: "G-6GP76P39G8"
+    };
 
-    const nombre = (document.getElementById("nombreInput").value || "").trim();
-    const cumple = document.getElementById("cumpleInput").value || null;
-    const tel = normTel(document.getElementById("telInput").value);
-    const email = normEmail(document.getElementById("emailInput").value);
+    if (typeof firebase === "undefined") {
+      if (status) status.innerText = "Error: Firebase no está disponible (scripts no cargaron).";
+      throw new Error("Firebase no cargó");
+    }
 
-    if (!nombre) return (status.innerText = "Ingresa tu nombre.");
-    if (!tel) return (status.innerText = "Ingresa tu teléfono (recuperación).");
-    if (!email) return (status.innerText = "Ingresa tu correo (recuperación).");
+    if (!firebase.apps || !firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
 
-    const idCliente = makeId();
-    const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+    function normEmail(v){ return (v||"").trim().toLowerCase(); }
+    function normTel(v){ return (v||"").replace(/[^\d]/g,"").trim(); }
+    function makeId(){ return "c_" + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+    function safeKey(str){ return btoa(unescape(encodeURIComponent(str))).replace(/=+/g,""); }
 
-    // ✅ idxKey seguro (evita puntos del email y caracteres prohibidos)
-    const rawKey = `${email}_${tel}`;
-    const idxKey = safeKey(rawKey);
-    const idxRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/recoveryIndex/${idxKey}`);
+    function showErr(e){
+      const msg = (e && (e.message || e.code)) ? `${e.code || ""} ${e.message || ""}`.trim() : String(e);
+      if (status) status.innerText = "Error: " + msg;
+    }
 
-    try {
-      if (status) status.innerText = "Guardando...";
+    function showQRView({idCliente, nombre, visitas=0, recompensasTotales=0}){
+      document.getElementById("vistaRegistro").style.display = "none";
+      document.getElementById("vistaQR").style.display = "block";
 
-      await clienteRef.set({
-        nombre,
-        cumpleanos: cumple,
-        telefono: tel,
-        email: email,
-        visitas: 0,
-        recompensaPendiente: false,
-        recompensasTotales: 0,
-        creadoEn: Date.now()
+      document.getElementById("nombreMostrado").innerText = nombre || "Cliente";
+      document.getElementById("visitasTxt").innerText = `${visitas}/6`;
+      document.getElementById("recompTxt").innerText = `${recompensasTotales}`;
+
+      requestAnimationFrame(()=>{
+        const qrDiv = document.getElementById("qr");
+        qrDiv.innerHTML = "";
+        new QRCode(qrDiv, { text:idCliente, width:210, height:210, correctLevel:QRCode.CorrectLevel.H });
       });
 
-      // guardamos rawKey por si quieres depurar (opcional)
-      await idxRef.set({ idCliente, creadoEn: Date.now(), rawKey });
+      localStorage.setItem(`cliente_id_${NEGOCIO_ID}`, idCliente);
+      localStorage.setItem(`cliente_nombre_${NEGOCIO_ID}`, nombre || "Cliente");
+    }
 
-      showQRView({ idCliente, nombre, visitas: 0, recompensasTotales: 0 });
+    (function autoLoadIfExists(){
+      const saved = localStorage.getItem(`cliente_id_${NEGOCIO_ID}`);
+      if (!saved) return;
 
-      if (status2) status2.innerText = "Listo. Guarda tu QR para usarlo en cada visita.";
+      firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${saved}`).get()
+        .then(snap=>{
+          if (!snap.exists()) return;
+          const c = snap.val() || {};
+          showQRView({
+            idCliente: saved,
+            nombre: c.nombre || "Cliente",
+            visitas: c.visitas || 0,
+            recompensasTotales: c.recompensasTotales || 0
+          });
+          if (status2) status2.innerText = "QR cargado desde tu dispositivo.";
+        })
+        .catch(()=>{});
+    })();
+
+    const btnCrear = document.getElementById("btnCrear");
+    btnCrear.addEventListener("click", async ()=>{
       if (status) status.innerText = "";
 
-    } catch (e) {
-      console.error(e);
-      showErr(e);
-    }
-  });
+      const nombre = (document.getElementById("nombreInput").value || "").trim();
+      const cumple = document.getElementById("cumpleInput").value || null;
+      const tel = normTel(document.getElementById("telInput").value);
+      const email = normEmail(document.getElementById("emailInput").value);
 
-  // ===== Botón “Guardar como app” (instrucciones) =====
-  const btnGuardarApp = document.getElementById("btnGuardarApp");
-  if (btnGuardarApp) {
-    btnGuardarApp.addEventListener("click", () => {
-      const ayuda = document.getElementById("ayudaApp");
-      if (ayuda) ayuda.style.display = "block";
+      if (!nombre) return (status.innerText = "Ingresa tu nombre.");
+      if (!tel) return (status.innerText = "Ingresa tu teléfono (recuperación).");
+      if (!email) return (status.innerText = "Ingresa tu correo (recuperación).");
+
+      const idCliente = makeId();
+      const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
+
+      const rawKey = `${email}_${tel}`;
+      const idxKey = safeKey(rawKey);
+      const idxRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/recoveryIndex/${idxKey}`);
+
+      try{
+        status.innerText = "Guardando...";
+
+        await clienteRef.set({
+          nombre,
+          cumpleanos: cumple,
+          telefono: tel,
+          email: email,
+          visitas: 0,
+          recompensaPendiente: false,
+          recompensasTotales: 0,
+          creadoEn: Date.now()
+        });
+
+        await idxRef.set({ idCliente, creadoEn: Date.now(), rawKey });
+
+        showQRView({ idCliente, nombre, visitas:0, recompensasTotales:0 });
+        if (status2) status2.innerText = "Listo. Guarda tu QR para usarlo en cada visita.";
+        status.innerText = "";
+
+      }catch(e){
+        console.error(e);
+        showErr(e);
+      }
     });
-  }
 
-  // ===== Botón screenshot =====
-  const btnScreenshot = document.getElementById("btnScreenshot");
-  if (btnScreenshot) {
-    btnScreenshot.addEventListener("click", () => {
+    document.getElementById("btnGuardarApp").addEventListener("click", ()=>{
+      document.getElementById("ayudaApp").style.display = "block";
+    });
+
+    document.getElementById("btnScreenshot").addEventListener("click", ()=>{
       alert("Haz screenshot a tu QR para guardarlo en tu galería. Luego lo muestras en cada visita.");
     });
-  }
 
-  // ===== Ir a recuperar =====
-  const goRecuperar = document.getElementById("goRecuperar");
-  if (goRecuperar) {
-    goRecuperar.addEventListener("click", () => {
+    document.getElementById("goRecuperar").addEventListener("click", ()=>{
       location.href = `./recuperar.html?negocio=${encodeURIComponent(NEGOCIO_ID)}`;
     });
-  }
-</script>
+  </script>
+</body>
+</html>
+
 
 
   <script>
