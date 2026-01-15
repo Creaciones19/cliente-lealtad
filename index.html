@@ -297,21 +297,51 @@
         showErr(e);
       }
     });
-
-    document.getElementById("btnGuardarApp").addEventListener("click", ()=>{
-      document.getElementById("ayudaApp").style.display = "block";
-    });
-
-    document.getElementById("btnScreenshot").addEventListener("click", ()=>{
-      alert("Haz screenshot a tu QR para guardarlo en tu galería. Luego lo muestras en cada visita.");
-    });
-
+  
     document.getElementById("goRecuperar").addEventListener("click", ()=>{
       location.href = `./recuperar.html?negocio=${encodeURIComponent(NEGOCIO_ID)}`;
     });
+    // =====================================================
+// ===== “Guardar como app” REAL (Android/Chrome) ======
+// En iPhone NO hay prompt; solo se muestran instrucciones
+// =====================================================
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+// Opcional: si ya está instalada, puedes ocultar el botón
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
+  if (status2) status2.innerText = "✅ App instalada.";
+});
+const btnGuardar = document.querySelector("#vistaQR #btnGuardarApp");
+if (btnGuardar) {
+  btnGuardar.addEventListener("click", async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch (_) {}
+      deferredPrompt = null;
+      return;
+    }
+
+    if (status2) status2.innerText =
+      "Para instalar: usa Chrome/Android y asegúrate de tener manifest + service worker.";
+    const ayuda = document.getElementById("ayudaApp");
+    if (ayuda) ayuda.style.display = "block";
+  });
+}
+
+const btnShot = document.querySelector("#vistaQR #btnScreenshot");
+if (btnShot) {
+  btnShot.addEventListener("click", () => {
+    alert("Haz screenshot con tu teléfono (Volumen - + Encendido). Luego lo guardas en tu galería.");
+  });
+}
+
   </script>
-</body>
-</html>
 
 
 
