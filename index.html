@@ -24,7 +24,13 @@
       background-size:cover; background-position:center;
       display:flex; justify-content:center; align-items:center;
     }
-    .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); }
+    .overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  pointer-events:none; /* <- CLAVE: no bloquea clicks */
+}
+
     .card{
       position:relative; z-index:2;
       background:#00754A; width:90%; max-width:380px;
@@ -57,57 +63,110 @@
     .link{
       color:#fff; text-decoration:underline; cursor:pointer;
     }
+    #btnCrear{
+  position:relative;
+  z-index:9999;
+  pointer-events:auto;
+}
+
   </style>
 </head>
 
 <body>
   <div class="overlay"></div>
 
-  <div class="card">
-    <div class="negocio" id="negocioTitulo">Registro</div>
+<div class="card">
+  <div class="negocio" id="negocioTitulo">Registro</div>
 
-    <div id="vistaRegistro">
-      <h1>Regístrate una sola vez</h1>
-      <p>Después tu QR personal quedará guardado.</p>
+  <div id="vistaRegistro">
+    <h1>Regístrate una sola vez</h1>
+    <p>Después tu QR personal quedará guardado.</p>
 
-      <label>Nombre completo</label>
-      <input id="nombreInput" type="text" placeholder="Ej. María Pérez" />
+    <label>Nombre completo</label>
+    <input id="nombreInput" type="text" placeholder="Ej. María Pérez" />
 
-      <label>Fecha de nacimiento</label>
-      <input id="cumpleInput" type="date" />
+    <label>Fecha de nacimiento</label>
+    <input id="cumpleInput" type="date" />
 
-      <label>Número de teléfono (recuperación)</label>
-      <input id="telInput" type="tel" placeholder="Ej. 5512345678" inputmode="tel" />
+    <label>Número de teléfono (recuperación)</label>
+    <input
+      id="telInput"
+      type="tel"
+      placeholder="Ej. 5512345678"
+      inputmode="tel"
+    />
 
-      <label>Correo electrónico (recuperación)</label>
-      <input id="emailInput" type="email" placeholder="Ej. maria@email.com" inputmode="email" />
+    <label>Correo electrónico (recuperación)</label>
+    <input
+      id="emailInput"
+      type="email"
+      placeholder="Ej. maria@email.com"
+      inputmode="email"
+    />
 
-      <button type="button" id="btnCrear">Crear mi QR</button>
+    <!-- BOTÓN CORRECTO (UNA SOLA VEZ, SIN ANIDAR) -->
+    <button type="button" id="btnCrear">Crear mi QR</button>
 
-
-      <div class="small">
-        Si ya te registraste y cambiaste de teléfono:
-        <span class="link" id="goRecuperar">recuperar mi QR</span>
-      </div>
-      <button
-  id="btnResetLocal"
-  style="
-    display:none;
-    margin-top:12px;
-    background:#ff4d4d;
-    color:#fff;
-    font-weight:700;
-    border:none;
-    border-radius:12px;
-    padding:14px;
-    cursor:pointer;
-  "
->
-  🧪 Reset (solo pruebas)
-</button>
-
-      <div id="status"></div>
+    <div class="small">
+      Si ya te registraste y cambiaste de teléfono:
+      <span class="link" id="goRecuperar">recuperar mi QR</span>
     </div>
+
+    <button
+      id="btnResetLocal"
+      style="
+        display: none;
+        margin-top: 12px;
+        background: #ff4d4d;
+        color: #fff;
+        font-weight: 700;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        cursor: pointer;
+      "
+    >
+      🧪 Reset (solo pruebas)
+    </button>
+
+    <div id="status"></div>
+  </div>
+
+  <div id="vistaQR" style="display: none;">
+    <h1>Este es tu QR personal</h1>
+    <p>Guárdalo. Lo mostrarás en cada visita.</p>
+
+    <div class="box">
+      <div><b id="nombreMostrado">Cliente</b></div>
+      <div class="small">
+        Visitas: <b id="visitasTxt">0/6</b> • Recompensas:
+        <b id="recompTxt">0</b>
+      </div>
+
+      <div id="qrWrap">
+        <div id="qr"></div>
+      </div>
+
+      <button id="btnGuardarApp">📲 Guardar como app</button>
+      <button class="btn-sec" id="btnScreenshot">
+        🖼️ Tomar screenshot (recomendado)
+      </button>
+
+      <div class="small" id="ayudaApp" style="display: none;">
+        <b>iPhone:</b> Safari → Compartir → “Agregar a pantalla de inicio”.<br />
+        <b>Android:</b> Chrome → Menú (⋮) → “Agregar a pantalla principal”.
+      </div>
+
+      <div class="small" style="margin-top: 10px;">
+        Tu QR identifica tu cuenta. Si lo pierdes, usa “recuperar” con tu teléfono
+        y correo.
+      </div>
+    </div>
+
+    <div id="status2" style="margin-top: 10px; font-size: 14px;"></div>
+  </div>
+</div>
+
 
     <div id="vistaQR" style="display:none;">
       <h1>Este es tu QR personal</h1>
@@ -172,10 +231,10 @@
   const negocioTitulo = document.getElementById("negocioTitulo");
   if (negocioTitulo) negocioTitulo.innerText = "Bienvenido a Restaurante Buon Appetito";
 
-  // ===== PWA register =====
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
-  }
+  // ===== PWA register (apagado por debug / evitar caché) =====
+  // if ("serviceWorker" in navigator) {
+  //   navigator.serviceWorker.register("./sw.js").catch(() => {});
+  // }
 
   // ===== Validación de librerías externas =====
   if (typeof QRCode === "undefined") {
@@ -216,6 +275,19 @@
 
   function makeId() {
     return "c_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  }
+
+  // Key segura para RTDB (evita . # $ [ ] / en paths)
+  function safeKey(str) {
+    return btoa(unescape(encodeURIComponent(str))).replace(/=+/g, "");
+  }
+
+  // Mejor formateo de error
+  function showErr(e) {
+    const msg = (e && (e.message || e.code))
+      ? `${e.code || ""} ${e.message || ""}`.trim()
+      : String(e);
+    if (status) status.innerText = "Error: " + msg;
   }
 
   // ===== Vista QR =====
@@ -294,7 +366,9 @@
     const idCliente = makeId();
     const clienteRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/clientes/${idCliente}`);
 
-    const idxKey = `${email}_${tel}`;
+    // ✅ idxKey seguro (evita puntos del email y caracteres prohibidos)
+    const rawKey = `${email}_${tel}`;
+    const idxKey = safeKey(rawKey);
     const idxRef = firebase.database().ref(`negocios/${NEGOCIO_ID}/recoveryIndex/${idxKey}`);
 
     try {
@@ -311,7 +385,8 @@
         creadoEn: Date.now()
       });
 
-      await idxRef.set({ idCliente, creadoEn: Date.now() });
+      // guardamos rawKey por si quieres depurar (opcional)
+      await idxRef.set({ idCliente, creadoEn: Date.now(), rawKey });
 
       showQRView({ idCliente, nombre, visitas: 0, recompensasTotales: 0 });
 
@@ -320,7 +395,7 @@
 
     } catch (e) {
       console.error(e);
-      if (status) status.innerText = "Error: " + (e?.message || e);
+      showErr(e);
     }
   });
 
@@ -350,6 +425,7 @@
   }
 </script>
 
+
   <script>
   // ===== DEBUG ON SOLO CON ?debug=1 =====
   const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
@@ -373,5 +449,23 @@
     });
   })();
 </script>
+<script>
+  (async () => {
+    try{
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+      }
+      if (window.caches) {
+        const keys = await caches.keys();
+        for (const k of keys) await caches.delete(k);
+      }
+      console.log("SW y caché eliminados");
+    }catch(e){
+      console.log("No se pudo limpiar:", e);
+    }
+  })();
+</script>
+
 </body>
 </html>
